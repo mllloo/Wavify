@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><%- include("partials/head", { pageTitle: playlist.name }) %></head>
+<body>
+
+<div class="app-layout">
+  <%- include("partials/sidebar", { activePage: "playlist:" + playlist.name }) %>
+
+  <div class="main-area">
+    <header class="topbar">
+      <div class="topbar-left">
+        <a href="/" class="topbar-back">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+        </a>
+        <h1 class="topbar-greeting"><%= playlist.name %></h1>
+      </div>
+      <div class="topbar-right">
+        <div class="search-bar-wrap">
+          <span class="search-bar-icon">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          </span>
+          <input class="search-bar-input" id="searchInput" type="text" placeholder="Songs, artists, albums…" autocomplete="off" />
+          <div class="search-dropdown" id="searchDropdown"></div>
+        </div>
+      </div>
+    </header>
+
+    <main class="page-content">
+
+      <% if (playlist.songs.length === 0) { %>
+        <div class="search-empty">
+          <div class="search-empty-icon">🎵</div>
+          <p>This playlist is empty</p>
+          <p class="text-muted">Search for songs and add them here</p>
+        </div>
+      <% } else { %>
+
+        <!-- top section for the playlist -->
+        <div class="playlist-hero">
+          <div class="playlist-mosaic">
+            <% for (let i = 0; i < Math.min(4, playlist.songs.length); i++) { %>
+              <img src="<%= playlist.songs[i].image || playlist.songs[i].image %>" alt="" />
+            <% } %>
+          </div>
+          <div class="playlist-hero-info">
+            <p class="playlist-type">Playlist</p>
+            <h2 class="playlist-hero-name"><%= playlist.name %></h2>
+            <p class="playlist-count-text"><%= playlist.songs.length %> song<%= playlist.songs.length !== 1 ? 's' : '' %></p>
+            <button class="btn-play-all" onclick="playAllPlaylist()">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg>
+              Play All
+            </button>
+          </div>
+        </div>
+
+        <!-- all the songs in the playlist -->
+        <div class="playlist-track-list" id="playlist-tracks">
+          <% playlist.songs.forEach((song, i) => { %>
+            <div class="playlist-track"
+              data-name="<%- (song.songName || song.name || '').replace(/"/g,'&quot;') %>"
+              data-artist="<%- (song.artist || '').replace(/"/g,'&quot;') %>"
+              data-audio="<%= song.audio || '' %>"
+              data-image="<%= song.image || '' %>"
+              data-queue-group="playlist-<%= playlist.name %>">
+              <span class="track-num"><%= i + 1 %></span>
+              <img class="track-img" src="<%= song.image %>" alt="" />
+              <div class="track-info">
+                <p class="track-name"><%- song.songName || song.name %></p>
+                <p class="track-artist"><%- song.artist %></p>
+              </div>
+              <div class="track-actions">
+                <button class="song-card-like" data-name="<%- (song.songName||song.name||'').replace(/"/g,'&quot;') %>" data-audio="<%= song.audio||'' %>" title="Like">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+                </button>
+                <button class="track-remove" data-idx="<%= i %>" data-playlist="<%= encodeURIComponent(playlist.name) %>" title="Remove">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
+                </button>
+              </div>
+            </div>
+          <% }) %>
+        </div>
+
+      <% } %>
+    </main>
+  </div>
+</div>
+
+<%- include("partials/player") %>
+<script src="/app.js"></script>
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    initPage();
+
+    // remove a song from the playlist
+    document.querySelectorAll(".track-remove").forEach(btn => {
+      btn.addEventListener("click", async (e) => {
+        e.stopPropagation();
+        const idx = btn.dataset.idx;
+        const pl  = btn.dataset.playlist;
+        const res = await fetch(`/api/playlists/${pl}/song/${idx}`, { method: "DELETE" });
+        if (res.ok) {
+          btn.closest(".playlist-track").remove();
+          showToast("Removed from playlist");
+        }
+      });
+    });
+  });
+
+  // plays every song in this playlist
+  function playAllPlaylist() {
+    const tracks = document.querySelectorAll("#playlist-tracks .playlist-track");
+    if (!tracks.length) return;
+    const songs = Array.from(tracks).map(t => songFromEl(t));
+    playSongWithQueue(songs[0], songs, 0);
+  }
+</script>
+</body>
+</html>
