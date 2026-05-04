@@ -1247,3 +1247,140 @@ img { display: block; }
   .carousel-card { flex: 0 0 170px; height: 140px; }
   .section-title { font-size: 1.1rem; }
 }
+/* add button on cards */
+.song-card-add {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: rgba(0,0,0,0.5);
+  border: none;
+  color: rgba(255,255,255,0.65);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: all var(--transition);
+  z-index: 2;
+}
+
+.song-card:hover .song-card-add {
+  opacity: 1;
+}
+
+.song-card-add:hover {
+  background: var(--accent);
+  color: white;
+}
+
+/* playlist picker */
+.playlist-picker-backdrop {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 700;
+}
+
+.playlist-picker-backdrop.open {
+  display: block;
+}
+
+.playlist-picker {
+  display: none;
+  position: fixed;
+  z-index: 710;
+  min-width: 210px;
+  background: rgba(15,15,25,0.98);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  box-shadow: 0 20px 60px rgba(0,0,0,0.65);
+  backdrop-filter: blur(30px);
+  overflow: hidden;
+}
+
+.playlist-picker.open {
+  display: block;
+}
+
+.playlist-picker-title {
+  padding: 11px 13px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  border-bottom: 1px solid var(--border);
+}
+
+.playlist-picker-option {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 13px;
+  background: none;
+  border: none;
+  color: var(--text);
+  font-size: 0.86rem;
+  text-align: left;
+}
+
+.playlist-picker-option:hover {
+  background: var(--glass-2);
+}
+
+.playlist-picker-option small {
+  color: var(--text-dim);
+}
+
+/* centered search page */
+.search-empty-centered {
+  min-height: calc(100vh - var(--topbar-h) - var(--player-h) - 80px);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.search-empty-centered h2 {
+  color: var(--text);
+  font-size: 1.8rem;
+  margin-bottom: 8px;
+}
+
+.search-empty-form {
+  position: relative;
+  width: min(520px, 92vw);
+  margin-top: 24px;
+}
+
+.search-empty-input {
+  height: 48px;
+  border-radius: 28px;
+  font-size: 1rem;
+  padding-left: 44px;
+}
+
+.search-empty-form .search-bar-icon {
+  left: 16px;
+}
+
+/* like button on playlist rows */
+.track-actions .song-card-like {
+  position: static;
+  opacity: 1;
+  width: 28px;
+  height: 28px;
+  background: none;
+  color: var(--text-dim);
+}
+
+.track-actions .song-card-like:hover {
+  color: var(--accent);
+  background: var(--glass);
+}
+
+.track-actions .song-card-like.liked {
+  color: var(--accent);
+}
