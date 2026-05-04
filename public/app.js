@@ -1,7 +1,6 @@
-
 /* 
   lol
-   main front end code for the music player
+  main front end code for the music player
 */
 
 /* keeps track of the player state */
@@ -58,6 +57,7 @@ function _loadAndPlay(song) {
     showToast('No preview available for this track');
     return;
   }
+
   audio.src     = song.audio;
   S.isPlaying   = true;
 
@@ -76,29 +76,56 @@ function _loadAndPlay(song) {
 
 function togglePlay() {
   if (!S.queue.length) return;
-  if (S.isPlaying) { audio.pause(); S.isPlaying = false; }
-  else             { audio.play();  S.isPlaying = true;  }
+
+  if (S.isPlaying) {
+    audio.pause();
+    S.isPlaying = false;
+  } else {
+    audio.play();
+    S.isPlaying = true;
+  }
+
   _updatePlayBtn();
 }
 
 function nextSong() {
   if (!S.queue.length) return;
-  if (S.repeatMode === 2) { audio.currentTime = 0; audio.play(); return; }
+
+  if (S.repeatMode === 2) {
+    audio.currentTime = 0;
+    audio.play();
+    return;
+  }
+
   let next = S.currentIndex + 1;
+
   if (S.isShuffle) next = Math.floor(Math.random() * S.queue.length);
+
   if (next >= S.queue.length) {
     if (S.repeatMode === 1) next = 0;
-    else { audio.pause(); S.isPlaying = false; _updatePlayBtn(); return; }
+    else {
+      audio.pause();
+      S.isPlaying = false;
+      _updatePlayBtn();
+      return;
+    }
   }
+
   S.currentIndex = next;
   _loadAndPlay(S.queue[next]);
 }
 
 function prevSong() {
   if (!S.queue.length) return;
-  if (audio.currentTime > 3) { audio.currentTime = 0; return; }
+
+  if (audio.currentTime > 3) {
+    audio.currentTime = 0;
+    return;
+  }
+
   let prev = S.currentIndex - 1;
   if (prev < 0) prev = S.repeatMode === 1 ? S.queue.length - 1 : 0;
+
   S.currentIndex = prev;
   _loadAndPlay(S.queue[prev]);
 }
@@ -108,8 +135,10 @@ audio.addEventListener('ended', nextSong);
 
 audio.addEventListener('timeupdate', () => {
   if (!audio.duration) return;
+
   const pct = (audio.currentTime / audio.duration) * 100;
   _setProgressUI(pct);
+
   const cur = qs('#time-current');
   if (cur) cur.textContent = fmtTime(audio.currentTime);
 });
@@ -119,10 +148,17 @@ audio.addEventListener('loadedmetadata', () => {
   if (tot) tot.textContent = fmtTime(audio.duration);
 });
 
-audio.addEventListener('play',  () => { S.isPlaying = true;  _updatePlayBtn(); });
-audio.addEventListener('pause', () => { S.isPlaying = false; _updatePlayBtn(); });
+audio.addEventListener('play', () => {
+  S.isPlaying = true;
+  _updatePlayBtn();
+});
 
-/* updates stuff in the player ui */
+audio.addEventListener('pause', () => {
+  S.isPlaying = false;
+  _updatePlayBtn();
+});
+
+/* updates player ui */
 function _updatePlayerUI(song) {
   const title  = qs('#player-title');
   const artist = qs('#player-artist');
@@ -133,24 +169,23 @@ function _updatePlayerUI(song) {
   if (artist) artist.textContent = song.artist || '—';
   if (img)    img.src            = song.image  || '';
 
-  // show the little equalizer animation
   if (wrap) wrap.classList.toggle('is-playing', S.isPlaying);
 
-  // also update the now playing popup
   const npTitle  = qs('#np-title');
   const npArtist = qs('#np-artist');
   const npImg    = qs('#np-img');
-  if (npTitle)  npTitle.textContent  = song.name;
-  if (npArtist) npArtist.textContent = song.artist;
-  if (npImg)    npImg.src            = song.image?.replace('100x100','400x400') || '';
 
-  // update like button state
+  if (npTitle)  npTitle.textContent  = song.name || '';
+  if (npArtist) npArtist.textContent = song.artist || '';
+  if (npImg)    npImg.src            = song.image?.replace('100x100', '400x400') || '';
+
   _syncHeartBtn(song);
 }
 
 function _updatePlayBtn() {
   const btn  = qs('#play-pause-btn');
   const wrap = qs('#player-thumb-wrap');
+
   if (!btn) return;
 
   if (S.isPlaying) {
@@ -165,6 +200,7 @@ function _updatePlayBtn() {
 function _setProgressUI(pct) {
   const fill  = qs('#progress-fill');
   const thumb = qs('#progress-thumb');
+
   if (fill)  fill.style.width = pct + '%';
   if (thumb) thumb.style.left  = pct + '%';
 }
@@ -172,10 +208,11 @@ function _setProgressUI(pct) {
 function _markActiveCard(song) {
   qsa('.song-card.is-playing').forEach(c => c.classList.remove('is-playing'));
   qsa('.playlist-track.is-playing').forEach(c => c.classList.remove('is-playing'));
-  // match cards by audio url
+
   qsa('.song-card[data-audio]').forEach(c => {
     if (c.dataset.audio === song.audio) c.classList.add('is-playing');
   });
+
   qsa('.playlist-track[data-audio]').forEach(c => {
     if (c.dataset.audio === song.audio) c.classList.add('is-playing');
   });
@@ -199,8 +236,10 @@ function _initProgressBar() {
 function _doSeek(e) {
   const bar = qs('#progress-bar');
   if (!bar || !audio.duration) return;
+
   const rect = bar.getBoundingClientRect();
   const pct  = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+
   audio.currentTime = pct * audio.duration;
   _setProgressUI(pct * 100);
 }
@@ -215,18 +254,20 @@ function _initVolumeBar() {
     _doVolume(e);
   });
 
-  // Set initial fill from state
   _setVolumeUI(S.volume);
 }
 
 function _doVolume(e) {
   const bar = qs('#volume-bar');
   if (!bar) return;
+
   const rect = bar.getBoundingClientRect();
   const pct  = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
-  S.volume   = pct;
+
+  S.volume     = pct;
   audio.volume = pct;
-  S.isMuted  = pct === 0;
+  S.isMuted    = pct === 0;
+
   localStorage.setItem('wv_vol', pct);
   _setVolumeUI(pct);
 }
@@ -234,14 +275,17 @@ function _doVolume(e) {
 function _setVolumeUI(pct) {
   const fill  = qs('#volume-fill');
   const thumb = qs('#volume-thumb');
-  if (fill)  fill.style.width  = (pct * 100) + '%';
-  if (thumb) thumb.style.left  = (pct * 100) + '%';
+
+  if (fill)  fill.style.width = (pct * 100) + '%';
+  if (thumb) thumb.style.left = (pct * 100) + '%';
+
   _updateVolumeIcon(pct);
 }
 
 function _updateVolumeIcon(pct) {
   const icon = qs('#volume-icon-svg');
   if (!icon) return;
+
   if (pct === 0) {
     icon.innerHTML = '<path d="M16.5 12A4.5 4.5 0 0 0 14 7.97v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06A8.99 8.99 0 0 0 15.73 19l2 2L19 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z"/>';
   } else if (pct < 0.5) {
@@ -261,18 +305,20 @@ document.addEventListener('mouseup', () => {
     _seekDragging = false;
     qs('#progress-bar')?.classList.remove('is-dragging');
   }
+
   _volDragging = false;
 });
 
 /* mute button */
 function toggleMute() {
-  S.isMuted     = !S.isMuted;
-  audio.muted   = S.isMuted;
+  S.isMuted   = !S.isMuted;
+  audio.muted = S.isMuted;
+
   const vol = S.isMuted ? 0 : S.volume;
   _setVolumeUI(vol);
 }
 
-/* shuffle and repeat buttons */
+/* shuffle and repeat */
 function toggleShuffle() {
   S.isShuffle = !S.isShuffle;
   qs('#btn-shuffle')?.classList.toggle('active', S.isShuffle);
@@ -281,11 +327,15 @@ function toggleShuffle() {
 
 function toggleRepeat() {
   S.repeatMode = (S.repeatMode + 1) % 3;
+
   const btn = qs('#btn-repeat');
   if (!btn) return;
+
   btn.classList.toggle('active', S.repeatMode > 0);
+
   const modes = ['Repeat off', 'Repeat all', 'Repeat one'];
   showToast(modes[S.repeatMode]);
+
   if (S.repeatMode === 2) {
     btn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M7 7h10v3l4-4-4-4v3H5v6h2V7zm10 10H7v-3l-4 4 4 4v-3h12v-6h-2v4zm-4-2V9h-1l-2 1v1h1.5v4H13z"/></svg>`;
   } else {
@@ -296,16 +346,19 @@ function toggleRepeat() {
 /* changes the background image */
 function _setDynamicBg(imageUrl) {
   const bg = qs('#dynamic-bg');
-  if (!bg) return;
+  if (!bg || !imageUrl) return;
+
   bg.style.backgroundImage = `url(${imageUrl.replace('100x100', '400x400')})`;
 }
 
-/* liked songs stuff */
+/* liked songs */
 function isFavorite(song) {
   return S.favorites.some(f => f.audio === song.audio);
 }
 
 function toggleFavorite(song) {
+  if (!song.audio) return;
+
   if (isFavorite(song)) {
     S.favorites = S.favorites.filter(f => f.audio !== song.audio);
     showToast('Removed from Liked Songs');
@@ -313,7 +366,9 @@ function toggleFavorite(song) {
     S.favorites.unshift(song);
     showToast('Added to Liked Songs ♥');
   }
+
   localStorage.setItem('wv_favs', JSON.stringify(S.favorites));
+
   _syncHeartBtn(song);
   _syncLikeButtons();
 }
@@ -325,7 +380,8 @@ function toggleCurrentFavorite() {
 
 function _syncHeartBtn(song) {
   const btn = qs('#player-heart-btn');
-  if (!btn) return;
+  if (!btn || !song) return;
+
   btn.classList.toggle('liked', isFavorite(song));
 }
 
@@ -333,15 +389,20 @@ function _syncLikeButtons() {
   qsa('.song-card-like').forEach(btn => {
     const audio = btn.dataset.audio;
     const liked = audio && S.favorites.some(f => f.audio === audio);
+
     btn.classList.toggle('liked', liked);
   });
 }
 
-/* recently played list */
+/* recently played */
 function _addToRecent(song) {
+  if (!song.audio) return;
+
   S.recent = S.recent.filter(r => r.audio !== song.audio);
   S.recent.unshift(song);
+
   if (S.recent.length > 30) S.recent.pop();
+
   localStorage.setItem('wv_recent', JSON.stringify(S.recent));
 }
 
@@ -349,8 +410,11 @@ function _addToRecent(song) {
 function toggleQueue() {
   const panel    = qs('#queue-panel');
   const backdrop = qs('#queue-backdrop');
+
   if (!panel) return;
+
   const open = panel.classList.toggle('open');
+
   backdrop?.classList.toggle('open', open);
   qs('#btn-queue')?.classList.toggle('active', open);
 }
@@ -358,14 +422,18 @@ function toggleQueue() {
 function renderQueue() {
   const list = qs('#queue-list');
   if (!list) return;
+
   list.innerHTML = '';
+
   if (!S.queue.length) {
     list.innerHTML = '<p style="padding:16px;color:var(--text-dim);font-size:0.85rem">Queue is empty</p>';
     return;
   }
+
   S.queue.forEach((song, i) => {
     const item = document.createElement('div');
     item.className = 'queue-item' + (i === S.currentIndex ? ' active' : '');
+
     item.innerHTML = `
       <img src="${song.image}" alt="" />
       <div class="queue-item-info">
@@ -374,49 +442,60 @@ function renderQueue() {
       </div>
       ${i === S.currentIndex ? '<div class="queue-item-active-dot"></div>' : ''}
     `;
+
     item.addEventListener('click', () => {
       S.currentIndex = i;
       _loadAndPlay(song);
     });
+
     list.appendChild(item);
   });
 }
 
 function escHtml(str) {
-  return (str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  return (str || '')
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;');
 }
 
 /* now playing popup */
 function openNpModal() {
   qs('#np-modal')?.classList.add('open');
 }
+
 function closeNpModal() {
   qs('#np-modal')?.classList.remove('open');
 }
 
-/* popup for recent songs and liked songs */
+/* recent and liked popup */
 function showRecentOverlay() {
   _openOverlay('Recently Played', S.recent);
 }
+
 function showLikedOverlay() {
   _openOverlay('Liked Songs', S.favorites);
 }
 
 function _openOverlay(title, songs) {
-  const panel = qs('#overlay-panel');
+  const panel   = qs('#overlay-panel');
   const titleEl = qs('#overlay-title');
-  const list   = qs('#overlay-list');
+  const list    = qs('#overlay-list');
+
   if (!panel || !list) return;
 
   if (titleEl) titleEl.textContent = title;
 
   list.innerHTML = '';
+
   if (!songs.length) {
     list.innerHTML = `<p style="padding:24px;color:var(--text-dim);text-align:center;font-size:0.88rem">Nothing here yet</p>`;
   } else {
     songs.forEach((song, i) => {
       const item = document.createElement('div');
       item.className = 'queue-item';
+
       item.innerHTML = `
         <img src="${song.image}" alt="" />
         <div class="queue-item-info">
@@ -424,10 +503,12 @@ function _openOverlay(title, songs) {
           <p class="queue-item-artist">${escHtml(song.artist)}</p>
         </div>
       `;
+
       item.addEventListener('click', () => {
         playSongWithQueue(song, songs, i);
         closeOverlay();
       });
+
       list.appendChild(item);
     });
   }
@@ -451,18 +532,28 @@ function initCarousel(wrapper) {
 
   if (!track || !cards.length) return;
 
-  let currentIdx   = 0;
-  let isDragging   = false;
-  let dragStartX   = 0;
-  let dragScrollStart = 0;
-  let autoTimer    = null;
+  let currentIdx       = 0;
+  let isDragging       = false;
+  let dragStartX       = 0;
+  let dragScrollStart  = 0;
+  let autoTimer        = null;
 
-  // make the dots under the carousel
+  // prevent duplicate dots
+  if (dotsEl) dotsEl.innerHTML = '';
+
+  // make dots
   if (dotsEl) {
     cards.forEach((_, i) => {
       const dot = document.createElement('button');
       dot.className = 'carousel-dot' + (i === 0 ? ' active' : '');
-      dot.addEventListener('click', () => goTo(i));
+
+      dot.addEventListener('click', e => {
+        e.stopPropagation();
+        clearAuto();
+        goTo(i);
+        startAuto();
+      });
+
       dotsEl.appendChild(dot);
     });
   }
@@ -474,67 +565,98 @@ function initCarousel(wrapper) {
 
   function goTo(idx, smooth = true) {
     currentIdx = ((idx % cards.length) + cards.length) % cards.length;
-    track.scrollTo({ left: currentIdx * getCardW(), behavior: smooth ? 'smooth' : 'instant' });
+
+    track.scrollTo({
+      left: currentIdx * getCardW(),
+      behavior: smooth ? 'smooth' : 'auto'
+    });
+
     syncDots();
   }
 
   function syncDots() {
     if (!dotsEl) return;
-    qsa('.carousel-dot', dotsEl).forEach((d, i) => d.classList.toggle('active', i === currentIdx));
+
+    qsa('.carousel-dot', dotsEl).forEach((d, i) => {
+      d.classList.toggle('active', i === currentIdx);
+    });
   }
 
-  // left and right buttons
-  prevBtn?.addEventListener('click', () => { clearAuto(); goTo(currentIdx - 1); startAuto(); });
-  nextBtn?.addEventListener('click', () => { clearAuto(); goTo(currentIdx + 1); startAuto(); });
+  prevBtn?.addEventListener('click', e => {
+    e.stopPropagation();
+    clearAuto();
+    goTo(currentIdx - 1);
+    startAuto();
+  });
 
-  // click a card to play that song
+  nextBtn?.addEventListener('click', e => {
+    e.stopPropagation();
+    clearAuto();
+    goTo(currentIdx + 1);
+    startAuto();
+  });
+
+  // click card to play
   cards.forEach((card, idx) => {
-    card.addEventListener('click', e => {
+    card.addEventListener('click', () => {
       if (isDragging) return;
+
       const song = songFromEl(card);
       const allSongs = cards.map(c => songFromEl(c));
+
       playSongWithQueue(song, allSongs, idx);
     });
   });
 
-  // let user drag the carousel
+  // mouse dragging
   track.addEventListener('mousedown', e => {
-    isDragging     = false;
-    dragStartX     = e.pageX;
-    dragScrollStart = track.scrollLeft;
+    isDragging       = false;
+    dragStartX       = e.pageX;
+    dragScrollStart  = track.scrollLeft;
+
     track.style.scrollBehavior = 'auto';
     track.style.scrollSnapType = 'none';
     track.classList.add('is-dragging');
+
     clearAuto();
   });
 
   track.addEventListener('mousemove', e => {
+    if (!track.classList.contains('is-dragging')) return;
+
     const dx = e.pageX - dragStartX;
+
     if (Math.abs(dx) > 4) {
       isDragging = true;
       track.scrollLeft = dragScrollStart - dx;
     }
   });
 
-  const endDrag = () => {
+  function endDrag() {
     if (!track.classList.contains('is-dragging')) return;
+
     track.classList.remove('is-dragging');
     track.style.scrollBehavior = '';
     track.style.scrollSnapType = '';
-    // snap to the closest card
+
     const nearest = Math.round(track.scrollLeft / getCardW());
     goTo(Math.max(0, Math.min(nearest, cards.length - 1)));
-    setTimeout(() => { isDragging = false; }, 0);
+
+    setTimeout(() => {
+      isDragging = false;
+    }, 0);
+
     startAuto();
-  };
+  }
 
   track.addEventListener('mouseup', endDrag);
   track.addEventListener('mouseleave', endDrag);
 
-  // touch support for phones
+  // phone support
   track.addEventListener('touchstart', e => {
     dragStartX      = e.touches[0].pageX;
     dragScrollStart = track.scrollLeft;
+
     track.style.scrollBehavior = 'auto';
     clearAuto();
   }, { passive: true });
@@ -545,33 +667,36 @@ function initCarousel(wrapper) {
     startAuto();
   }, { passive: true });
 
-  // keep dots synced when user scrolls
+  // keep dots updated
   track.addEventListener('scroll', () => {
     const idx = Math.round(track.scrollLeft / getCardW());
+
     if (idx !== currentIdx && idx >= 0 && idx < cards.length) {
       currentIdx = idx;
       syncDots();
     }
   }, { passive: true });
 
-  // auto move every few seconds
   function startAuto() {
+    clearAuto();
     autoTimer = setInterval(() => goTo(currentIdx + 1), 5000);
   }
+
   function clearAuto() {
     clearInterval(autoTimer);
   }
 
   wrapper.addEventListener('mouseenter', clearAuto);
-  wrapper.addEventListener('mouseleave', () => startAuto());
+  wrapper.addEventListener('mouseleave', startAuto);
 
   startAuto();
 }
 
-/* live search bar */
+/* live search */
 function initSearch() {
   const input    = qs('#searchInput');
   const dropdown = qs('#searchDropdown');
+
   if (!input || !dropdown) return;
 
   let debounceTimer = null;
@@ -580,8 +705,13 @@ function initSearch() {
 
   input.addEventListener('input', () => {
     clearTimeout(debounceTimer);
+
     const q = input.value.trim();
-    if (!q) { dropdown.style.display = 'none'; return; }
+
+    if (!q) {
+      dropdown.style.display = 'none';
+      return;
+    }
 
     dropdown.innerHTML = '<div class="search-loading">Searching…</div>';
     dropdown.style.display = 'block';
@@ -591,7 +721,7 @@ function initSearch() {
 
   async function fetchSearch(q) {
     try {
-      const res  = await fetch(`/api/search?q=${encodeURIComponent(q)}`);
+      const res = await fetch(`/api/search?q=${encodeURIComponent(q)}`);
       searchResults = await res.json();
       renderDropdown();
     } catch {
@@ -604,6 +734,7 @@ function initSearch() {
       dropdown.innerHTML = '<div class="search-loading">No results</div>';
       return;
     }
+
     dropdown.innerHTML = searchResults.map((s, i) => `
       <div class="search-item" data-idx="${i}">
         <img src="${s.image || ''}" alt="" />
@@ -613,6 +744,7 @@ function initSearch() {
         </div>
       </div>
     `).join('');
+
     dropdown.style.display = 'block';
     selectedIdx = -1;
 
@@ -627,34 +759,39 @@ function initSearch() {
   function playFromSearch(i) {
     const song = searchResults[i];
     if (!song) return;
+
     playSongWithQueue(song, searchResults, i);
+
     dropdown.style.display = 'none';
     input.value = '';
   }
 
-  // keyboard controls for search results
   input.addEventListener('keydown', e => {
     const items = qsa('.search-item', dropdown);
+
     if (e.key === 'ArrowDown') {
       e.preventDefault();
+
       selectedIdx = Math.min(selectedIdx + 1, items.length - 1);
       items.forEach((el, i) => el.classList.toggle('selected', i === selectedIdx));
+
     } else if (e.key === 'ArrowUp') {
       e.preventDefault();
+
       selectedIdx = Math.max(selectedIdx - 1, -1);
       items.forEach((el, i) => el.classList.toggle('selected', i === selectedIdx));
+
     } else if (e.key === 'Enter') {
       if (selectedIdx >= 0) {
         e.preventDefault();
         playFromSearch(selectedIdx);
       }
-      // else let the page handle navigation
+
     } else if (e.key === 'Escape') {
       dropdown.style.display = 'none';
     }
   });
 
-  // close dropdown if user clicks somewhere else
   document.addEventListener('click', e => {
     if (!input.contains(e.target) && !dropdown.contains(e.target)) {
       dropdown.style.display = 'none';
@@ -662,47 +799,66 @@ function initSearch() {
   });
 }
 
-/* click events for song cards and playlist tracks */
+/* click events for cards */
 function initSongCards() {
-  // group cards so one click can load the full section as queue
   const groups = {};
+
   qsa('.song-card[data-queue-group]').forEach(card => {
     const g = card.dataset.queueGroup;
+
     if (!groups[g]) groups[g] = [];
     groups[g].push(card);
   });
 
-  qsa('.song-card').forEach((card, globalIdx) => {
+  qsa('.song-card').forEach(card => {
     card.addEventListener('click', e => {
-      // don't also play the song if the like button was clicked
+      // dont play when buttons clicked
       if (e.target.closest('.song-card-like')) return;
+      if (e.target.closest('.song-card-add')) return;
+
       const song = songFromEl(card);
       const g    = card.dataset.queueGroup;
+
       if (g && groups[g]) {
         const groupSongs = groups[g].map(c => songFromEl(c));
         const idxInGroup = groups[g].indexOf(card);
+
         playSongWithQueue(song, groupSongs, idxInGroup);
       } else {
         playSong(song);
       }
+
       addRipple(card, e);
     });
 
-    // like button on each card
     const likeBtn = qs('.song-card-like', card);
+
     if (likeBtn) {
       likeBtn.addEventListener('click', e => {
         e.stopPropagation();
+
         const song = songFromEl(card);
         toggleFavorite(song);
       });
     }
+
+    const addBtn = qs('.song-card-add', card);
+
+    if (addBtn) {
+      addBtn.addEventListener('click', e => {
+        e.stopPropagation();
+
+        const song = songFromEl(card);
+        openPlaylistPicker(song, e);
+      });
+    }
   });
 
-  // click events for playlist page tracks
   const pGroups = {};
+
   qsa('.playlist-track[data-queue-group]').forEach(track => {
     const g = track.dataset.queueGroup;
+
     if (!pGroups[g]) pGroups[g] = [];
     pGroups[g].push(track);
   });
@@ -710,66 +866,103 @@ function initSongCards() {
   qsa('.playlist-track').forEach(track => {
     track.addEventListener('click', e => {
       if (e.target.closest('.track-actions')) return;
+
       const song = songFromEl(track);
       const g    = track.dataset.queueGroup;
+
       if (g && pGroups[g]) {
         const groupSongs = pGroups[g].map(c => songFromEl(c));
         const idx        = pGroups[g].indexOf(track);
+
         playSongWithQueue(song, groupSongs, idx);
       } else {
         playSong(song);
       }
     });
+
+    const likeBtn = qs('.song-card-like', track);
+
+    if (likeBtn) {
+      likeBtn.addEventListener('click', e => {
+        e.stopPropagation();
+
+        const song = songFromEl(track);
+        toggleFavorite(song);
+      });
+    }
+
+    const addBtn = qs('.song-card-add', track);
+
+    if (addBtn) {
+      addBtn.addEventListener('click', e => {
+        e.stopPropagation();
+
+        const song = songFromEl(track);
+        openPlaylistPicker(song, e);
+      });
+    }
   });
 }
 
-/* small ripple effect when a card is clicked */
+/* small ripple */
 function addRipple(el, e) {
   el.classList.add('ripple-host');
+
   const rect   = el.getBoundingClientRect();
   const size   = Math.max(rect.width, rect.height);
   const ripple = document.createElement('span');
+
   ripple.className = 'ripple';
   ripple.style.cssText = `
     width:${size}px; height:${size}px;
-    left:${e.clientX - rect.left - size/2}px;
-    top:${e.clientY - rect.top  - size/2}px;
+    left:${e.clientX - rect.left - size / 2}px;
+    top:${e.clientY - rect.top - size / 2}px;
   `;
+
   el.appendChild(ripple);
   ripple.addEventListener('animationend', () => ripple.remove());
 }
 
-/* toast message */
+/* toast */
 let _toastTimer = null;
+
 function showToast(msg) {
   const t = qs('#toast');
   if (!t) return;
+
   t.textContent = msg;
   t.classList.add('visible');
+
   clearTimeout(_toastTimer);
   _toastTimer = setTimeout(() => t.classList.remove('visible'), 2200);
 }
 
-/* mobile sidebar button */
+/* mobile sidebar */
 function toggleSidebar() {
   qs('#sidebar')?.classList.toggle('open');
 }
 
-/* makes a new playlist */
+/* makes a playlist */
 function promptNewPlaylist() {
   const name = prompt('Playlist name:');
+
   if (!name?.trim()) return;
+
   fetch('/api/playlists', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ name: name.trim() }),
   }).then(r => {
-    if (r.ok) { showToast(`Created "${name}"`); location.reload(); }
-    else showToast('Could not create playlist');
+    if (r.ok) {
+      showToast(`Created "${name}"`);
+      location.reload();
+    } else {
+      showToast('Could not create playlist');
+    }
   });
 }
 
-/* add a song to a playlist */
+/* add song to playlist */
 function addToPlaylist(song, playlistName) {
   fetch(`/api/playlists/${encodeURIComponent(playlistName)}/add`, {
     method: 'POST',
@@ -780,21 +973,62 @@ function addToPlaylist(song, playlistName) {
   });
 }
 
+/* playlist picker */
+let _pickerSong = null;
+
+function openPlaylistPicker(song, e) {
+  _pickerSong = song;
+
+  const picker   = qs('#playlist-picker');
+  const backdrop = qs('#playlist-picker-backdrop');
+
+  if (!picker) return;
+
+  const x = e?.clientX ?? window.innerWidth / 2;
+  const y = e?.clientY ?? window.innerHeight / 2;
+
+  picker.style.left = Math.min(x, window.innerWidth - 230) + 'px';
+  picker.style.top  = Math.min(y + 8, window.innerHeight - 300) + 'px';
+
+  picker.classList.add('open');
+  backdrop?.classList.add('open');
+}
+
+function closePlaylistPicker() {
+  qs('#playlist-picker')?.classList.remove('open');
+  qs('#playlist-picker-backdrop')?.classList.remove('open');
+
+  _pickerSong = null;
+}
+
+function pickPlaylist(encodedName) {
+  if (!_pickerSong) return;
+
+  const name = decodeURIComponent(encodedName);
+
+  addToPlaylist(_pickerSong, name);
+  closePlaylistPicker();
+}
+
 /* keyboard shortcuts */
 function initKeyboard() {
   document.addEventListener('keydown', e => {
     const tag = document.activeElement?.tagName;
+
     if (tag === 'INPUT' || tag === 'TEXTAREA') return;
 
     if (e.code === 'Space') {
       e.preventDefault();
       togglePlay();
+
     } else if (e.code === 'ArrowRight') {
       e.preventDefault();
       nextSong();
+
     } else if (e.code === 'ArrowLeft') {
       e.preventDefault();
       prevSong();
+
     } else if (e.code === 'KeyM') {
       toggleMute();
     }
@@ -811,12 +1045,15 @@ function initPage() {
   _syncLikeButtons();
   _setVolumeUI(S.volume);
 
-  // clicking album art opens the popup
+  // init all carousels
+  qsa('.carousel-wrapper').forEach(w => initCarousel(w));
+
+  // album art opens popup
   qs('#player-thumb-wrap')?.addEventListener('click', () => {
     if (S.queue.length) openNpModal();
   });
 
-  // close sidebar on small screens when main area is clicked
+  // close sidebar on phones
   qs('.main-area')?.addEventListener('click', () => {
     if (window.innerWidth <= 900) {
       qs('#sidebar')?.classList.remove('open');
@@ -824,26 +1061,29 @@ function initPage() {
   });
 }
 
-/* make functions available in the html */
-window.playSong           = playSong;
-window.playSongWithQueue  = playSongWithQueue;
-window.togglePlay         = togglePlay;
-window.nextSong           = nextSong;
-window.prevSong           = prevSong;
-window.toggleShuffle      = toggleShuffle;
-window.toggleRepeat       = toggleRepeat;
-window.toggleMute         = toggleMute;
-window.toggleQueue        = toggleQueue;
-window.toggleSidebar      = toggleSidebar;
-window.openNpModal        = openNpModal;
-window.closeNpModal       = closeNpModal;
-window.showRecentOverlay  = showRecentOverlay;
-window.showLikedOverlay   = showLikedOverlay;
-window.closeOverlay       = closeOverlay;
+/* make functions available in html */
+window.playSong              = playSong;
+window.playSongWithQueue     = playSongWithQueue;
+window.togglePlay            = togglePlay;
+window.nextSong              = nextSong;
+window.prevSong              = prevSong;
+window.toggleShuffle         = toggleShuffle;
+window.toggleRepeat          = toggleRepeat;
+window.toggleMute            = toggleMute;
+window.toggleQueue           = toggleQueue;
+window.toggleSidebar         = toggleSidebar;
+window.openNpModal           = openNpModal;
+window.closeNpModal          = closeNpModal;
+window.showRecentOverlay     = showRecentOverlay;
+window.showLikedOverlay      = showLikedOverlay;
+window.closeOverlay          = closeOverlay;
 window.toggleCurrentFavorite = toggleCurrentFavorite;
-window.promptNewPlaylist  = promptNewPlaylist;
-window.addToPlaylist      = addToPlaylist;
-window.initCarousel       = initCarousel;
-window.initPage           = initPage;
-window.showToast          = showToast;
-window.songFromEl         = songFromEl;
+window.promptNewPlaylist     = promptNewPlaylist;
+window.addToPlaylist         = addToPlaylist;
+window.initCarousel          = initCarousel;
+window.initPage              = initPage;
+window.showToast             = showToast;
+window.songFromEl            = songFromEl;
+window.openPlaylistPicker    = openPlaylistPicker;
+window.closePlaylistPicker   = closePlaylistPicker;
+window.pickPlaylist          = pickPlaylist;

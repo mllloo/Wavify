@@ -15,9 +15,7 @@ app.use(express.json());
 
 const PLAYLISTS_FILE = join(__dirname, "data", "playlists.json");
 
-// json file where playlists are stored
-
-/* reads playlist data from the json file */
+/* reads playlists */
 function getPlaylists() {
   try {
     if (!existsSync(PLAYLISTS_FILE)) return [];
@@ -25,22 +23,20 @@ function getPlaylists() {
   } catch { return []; }
 }
 
-/* saves playlist data back to the file */
+/* saves playlists */
 function savePlaylists(playlists) {
   writeFileSync(PLAYLISTS_FILE, JSON.stringify(playlists, null, 2));
 }
 
-/* turns the api song object into the format my app uses */
+/* maps api song -> app format */
 const mapSong = (s) => ({
   name:   s.trackName   || "Unknown",
   artist: s.artistName  || "Unknown",
   audio:  s.previewUrl  || null,
   image:  s.artworkUrl100 || "",
-  album:  s.collectionName || "",
-  id:     String(s.trackId || Math.random()),
 });
 
-/* helper function to search songs   */
+/* itunes search helper */
 async function iTunesSearch(term, entity = "song", limit = 20) {
   const url = `https://itunes.apple.com/search?term=${encodeURIComponent(term)}&entity=${entity}&limit=${limit}`;
   const r = await fetch(url);
@@ -48,40 +44,57 @@ async function iTunesSearch(term, entity = "song", limit = 20) {
   return d.results || [];
 }
 
-// home page
+/* home page */
 app.get("/", async (req, res) => {
   try {
-    const [pop, hip, chill] = await Promise.all([
+    const [pop, hip, chill, rock, jazz, latin, rnb, country] = await Promise.all([
       iTunesSearch("top pop 2024", "song", 16),
       iTunesSearch("hip hop hits", "song", 10),
       iTunesSearch("chill vibes", "song", 10),
+      iTunesSearch("rock hits", "song", 10),        // added
+      iTunesSearch("jazz classics", "song", 10),    // added
+      iTunesSearch("latin hits", "song", 10),       // added
+      iTunesSearch("rnb hits", "song", 10),         // added
+      iTunesSearch("country hits", "song", 10),     // added
     ]);
+
     res.render("index", {
       trending:    pop.map(mapSong),
       newReleases: hip.map(mapSong),
       chillPicks:  chill.map(mapSong),
+      rock:        rock.map(mapSong),      // added
+      jazz:        jazz.map(mapSong),      // added
+      latin:       latin.map(mapSong),     // added
+      rnb:         rnb.map(mapSong),       // added
+      country:     country.map(mapSong),   // added
       playlists:   getPlaylists(),
     });
-  } catch (e) {
-    console.error(e);
-    res.render("index", { trending: [], newReleases: [], chillPicks: [], playlists: [] });
+
+  } catch {
+    res.render("index", {
+      trending: [], newReleases: [], chillPicks: [],
+      rock: [], jazz: [], latin: [], rnb: [], country: [],
+      playlists: []
+    });
   }
 });
 
-// search page
+/* search */
 app.get("/search", async (req, res) => {
   const q = req.query.q || "";
   let songs = [];
+
   if (q) {
     try {
       const results = await iTunesSearch(q, "song", 24);
       songs = results.map(mapSong);
     } catch {}
   }
+
   res.render("search", { songs, q, playlists: getPlaylists() });
 });
 
-// playlist page
+/* playlist page */
 app.get("/playlist/:name", (req, res) => {
   const playlists = getPlaylists();
   const name = decodeURIComponent(req.params.name);
@@ -90,7 +103,7 @@ app.get("/playlist/:name", (req, res) => {
   res.render("playlist", { playlist, playlists });
 });
 
-// api for live search
+/* api search */
 app.get("/api/search", async (req, res) => {
   const q = req.query.q;
   if (!q || q.length < 2) return res.json([]);
@@ -102,15 +115,17 @@ app.get("/api/search", async (req, res) => {
   }
 });
 
-// playlist api routes
+/* playlists api */
 app.get("/api/playlists", (req, res) => res.json(getPlaylists()));
 
 app.post("/api/playlists", (req, res) => {
   const { name } = req.body;
   if (!name) return res.status(400).json({ error: "Name required" });
+
   const playlists = getPlaylists();
   if (playlists.find((p) => p.name === name))
     return res.status(409).json({ error: "Already exists" });
+
   playlists.push({ name, songs: [] });
   savePlaylists(playlists);
   res.json({ ok: true });
@@ -120,26 +135,18 @@ app.post("/api/playlists/:name/add", (req, res) => {
   const playlists = getPlaylists();
   const name = decodeURIComponent(req.params.name);
   const playlist = playlists.find((p) => p.name === name);
+
   if (!playlist) return res.status(404).json({ error: "Not found" });
+
   const song = req.body;
   if (!playlist.songs.some((s) => s.audio === song.audio)) {
     playlist.songs.push(song);
     savePlaylists(playlists);
   }
+
   res.json({ ok: true });
 });
 
-app.delete("/api/playlists/:name/song/:idx", (req, res) => {
-  const playlists = getPlaylists();
-  const name = decodeURIComponent(req.params.name);
-  const playlist = playlists.find((p) => p.name === name);
-  if (!playlist) return res.status(404).json({ error: "Not found" });
-  playlist.songs.splice(parseInt(req.params.idx), 1);
-  savePlaylists(playlists);
-  res.json({ ok: true });
-});
-
-/* starts the server */
 app.listen(PORT, () => {
-  console.log(`\n✓  Wavify is running → http://localhost:${PORT}\n`);
+  console.log(`running http://localhost:${PORT}`);
 });

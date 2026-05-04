@@ -1,4 +1,4 @@
-<!-- weird index.ejs -->
+<!-- index.ejs -->
 <!DOCTYPE html>
 <html lang="en">
 <head><%- include("partials/head") %></head>
@@ -14,6 +14,7 @@
       <div class="topbar-left">
         <h1 class="topbar-greeting" id="greeting">Good evening</h1>
       </div>
+
       <div class="topbar-right">
         <div class="search-bar-wrap">
           <span class="search-bar-icon">
@@ -27,7 +28,7 @@
 
     <main class="page-content">
 
-      <!-- big carousel at the top -->
+      <!-- carousel -->
       <section class="carousel-section">
         <div class="section-header">
           <h2 class="section-title">🔥 Trending</h2>
@@ -47,11 +48,14 @@
                 data-artist="<%= song.artist %>"
                 data-audio="<%= song.audio %>"
                 data-image="<%= song.image %>"
+                data-queue-group="trending"
               >
                 <img src="<%= song.image %>" alt="<%= song.name %>" />
+
                 <div class="carousel-play-btn">
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg>
                 </div>
+
                 <div class="carousel-overlay">
                   <div class="carousel-rank">#<%= i + 1 %> trending</div>
                   <div class="carousel-info">
@@ -70,84 +74,36 @@
           <div class="carousel-dots"></div>
         </div>
       </section>
+      <% const genreSections = [
+      { title: "New Releases", subtitle: "Fresh stuff to try", songs: newReleases, group: "new-releases" },
+      { title: "Chill Picks", subtitle: "More relaxed songs", songs: chillPicks, group: "chill-picks" },
+      { title: "Rock Hits", subtitle: "Guitars and big hooks", songs: rock, group: "rock-hits" },
+      { title: "Jazz Vibes", subtitle: "Smooth classics and standards", songs: jazz, group: "jazz-vibes" },
+      { title: "Latin Hits", subtitle: "Reggaeton, pop, and Latin favorites", songs: latin, group: "latin-hits" },
+      { title: "R&B Hits", subtitle: "Smooth vocals and grooves", songs: rnb, group: "rnb-hits" },
+      { title: "Country Hits", subtitle: "Modern country favorites", songs: country, group: "country-hits" }
+    ]; %>
 
-      <!-- first song section -->
-      <section class="grid-section">
-        <div class="section-header">
-          <h2 class="section-title">New Releases</h2>
-          <span class="text-muted">Fresh stuff to try</span>
-        </div>
+      <% genreSections.forEach((section) => { %>
+        <section class="grid-section">
+          <div class="section-header">
+            <h2 class="section-title"><%= section.title %></h2>
+            <span class="text-muted"><%= section.subtitle %></span>
+          </div>
 
-        <div class="song-grid">
-          <% newReleases.forEach((song) => { %>
-            <article
-              class="song-card"
-              data-name="<%= song.name %>"
-              data-artist="<%= song.artist %>"
-              data-audio="<%= song.audio %>"
-              data-image="<%= song.image %>"
-              data-queue-group="new-releases"
-            >
-              <button class="song-card-like" data-audio="<%= song.audio %>" aria-label="Like">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
-              </button>
+          <div class="song-grid">
+            <% section.songs.forEach((song) => { %>
+              <%- include("partials/song-card", { song, queueGroup: section.group }) %>
+            <% }) %>
+          </div>
+        </section>
+      <% }) %>
 
-              <div class="song-card-img-wrap">
-                <img src="<%= song.image %>" alt="<%= song.name %>" />
-                <div class="song-card-play-overlay">
-                  <svg width="15" height="15" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg>
-                </div>
-              </div>
-
-              <div class="song-card-body">
-                <div class="song-card-name"><%= song.name %></div>
-                <div class="song-card-artist"><%= song.artist %></div>
-              </div>
-            </article>
-          <% }) %>
-        </div>
-      </section>
-
-      <!-- second song section -->
-      <section class="grid-section">
-        <div class="section-header">
-          <h2 class="section-title">Chill Picks</h2>
-          <span class="text-muted">More relaxed songs</span>
-        </div>
-
-        <div class="song-grid">
-          <% chillPicks.forEach((song) => { %>
-            <article
-              class="song-card"
-              data-name="<%= song.name %>"
-              data-artist="<%= song.artist %>"
-              data-audio="<%= song.audio %>"
-              data-image="<%= song.image %>"
-              data-queue-group="chill-picks"
-            >
-              <button class="song-card-like" data-audio="<%= song.audio %>" aria-label="Like">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
-              </button>
-
-              <div class="song-card-img-wrap">
-                <img src="<%= song.image %>" alt="<%= song.name %>" />
-                <div class="song-card-play-overlay">
-                  <svg width="15" height="15" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg>
-                </div>
-              </div>
-
-              <div class="song-card-body">
-                <div class="song-card-name"><%= song.name %></div>
-                <div class="song-card-artist"><%= song.artist %></div>
-              </div>
-            </article>
-          <% }) %>
-        </div>
-      </section>
     </main>
   </div>
 </div>
 
+<%- include("partials/playlist-picker", { playlists }) %>
 <%- include("partials/player") %>
 
 <script src="/app.js"></script>
@@ -155,8 +111,10 @@
   initPage();
   initCarousel(document.getElementById('hero-carousel'));
 
+  // greeting
   const hour = new Date().getHours();
   const greeting = document.getElementById('greeting');
+
   if (greeting) {
     if (hour < 12) greeting.textContent = 'Good morning';
     else if (hour < 18) greeting.textContent = 'Good afternoon';

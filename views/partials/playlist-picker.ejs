@@ -1,0 +1,16 @@
+<div class="playlist-picker-backdrop" id="playlist-picker-backdrop" onclick="closePlaylistPicker()"></div>
+
+<div class="playlist-picker" id="playlist-picker">
+  <div class="playlist-picker-title">Add to playlist</div>
+
+  <% if (!playlists || playlists.length === 0) { %>
+    <button class="playlist-picker-option" onclick="promptNewPlaylist()">Create a playlist first</button>
+  <% } else { %>
+    <% playlists.forEach((pl) => { %>
+      <button class="playlist-picker-option" onclick="pickPlaylist('<%= encodeURIComponent(pl.name) %>')">
+        <span><%= pl.name %></span>
+        <small><%= pl.songs.length %></small>
+      </button>
+    <% }) %>
+  <% } %>
+</div>

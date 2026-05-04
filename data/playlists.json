@@ -5,10 +5,34 @@
   },
   {
     "name": "millo",
-    "songs": []
+    "songs": [
+      {
+        "name": "Heartless",
+        "artist": "Kanye West",
+        "audio": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview115/v4/c9/24/96/c9249688-ffdc-40c1-d56e-d84ee8537ed7/mzaf_15473080214798193650.plus.aac.p.m4a",
+        "image": "https://is1-ssl.mzstatic.com/image/thumb/Music125/v4/4d/75/2d/4d752db1-022d-f65d-40a1-a2390f01427a/13UAEIM26465.rgb.jpg/100x100bb.jpg"
+      },
+      {
+        "name": "ALL THE LOVE",
+        "artist": "Kanye West & Andre Troutman",
+        "audio": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/0d/a6/f0/0da6f0f2-0145-676d-9f9c-d28c7e08f258/mzaf_2658965377541339594.plus.aac.p.m4a",
+        "image": "https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/4b/38/d1/4b38d146-381d-ace2-73df-24074576e62b/656465138828_cover.jpg/100x100bb.jpg"
+      }
+    ]
   },
   {
     "name": "rap",
     "songs": []
+  },
+  {
+    "name": "oliver",
+    "songs": [
+      {
+        "name": "U Can't Touch This",
+        "artist": "MC Hammer",
+        "audio": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/7e/3e/9e/7e3e9edb-74da-06d8-0bda-2b7c8f757b67/mzaf_7650390354415140006.plus.aac.p.m4a",
+        "image": "https://is1-ssl.mzstatic.com/image/thumb/Music122/v4/0c/a5/7c/0ca57c94-601d-f973-eb79-3941573aac7c/13UABIM74018.rgb.jpg/100x100bb.jpg"
+      }
+    ]
   }
 ]
