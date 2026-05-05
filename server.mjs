@@ -1,4 +1,3 @@
-/*  ah server.mjs */
 import express from "express";
 import session from "express-session";
 import { fileURLToPath } from "url";
@@ -12,6 +11,7 @@ const db = await mysql.createPool({
   password: "xmwhaylm451i6jlo",
   database: "huc11wckpzagmk50",
 });
+
 import { getArtistInfo, getTopTracks, getDiscography } from "./services/audiodb.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -35,7 +35,6 @@ function requireAuth(req, res, next) {
   next();
 }
 
-
 async function getUserPlaylists(userId) {
   const [playlists] = await db.execute(
     "SELECT * FROM playlists WHERE user_id = ?",
@@ -53,13 +52,20 @@ async function getUserPlaylists(userId) {
   return playlists;
 }
 
-const mapSong = (s) => ({
-  name:   s.trackName   || s.name || "Unknown",
-  artist: s.artistName  || s.artist || "Unknown",
-  audio:  s.previewUrl  || s.audio || null,
-  image:  s.artworkUrl100 || s.image || "",
-});
+async function getLikedSet(userId) {
+  const [rows] = await db.execute(
+    "SELECT audio FROM liked_songs WHERE user_id = ?",
+    [userId]
+  );
+  return new Set(rows.map(r => r.audio));
+}
 
+const mapSong = (s) => ({
+  name: s.trackName || s.name || "Unknown",
+  artist: s.artistName || s.artist || "Unknown",
+  audio: s.previewUrl || s.audio || null,
+  image: s.artworkUrl100 || s.image || "",
+});
 
 async function iTunesSearch(term, entity = "song", limit = 20) {
   const url = `https://itunes.apple.com/search?term=${encodeURIComponent(term)}&entity=${entity}&limit=${limit}`;
@@ -67,9 +73,6 @@ async function iTunesSearch(term, entity = "song", limit = 20) {
   const d = await r.json();
   return d.results || [];
 }
-
-
-
 
 app.get("/login", (req, res) => {
   if (req.session.user) return res.redirect("/");
@@ -106,11 +109,6 @@ app.post("/login", async (req, res) => {
   }
 });
 
-app.get("/logout", (req, res) => {
-  req.session.destroy(() => res.redirect("/login"));
-});
-
-
 app.get("/", requireAuth, async (req, res) => {
   try {
     const [
@@ -126,23 +124,19 @@ app.get("/", requireAuth, async (req, res) => {
       iTunesSearch("rnb hits", "song", 10),
       iTunesSearch("country hits", "song", 10),
     ]);
-    const [likedRows] = await db.execute(
-      "SELECT audio FROM liked_songs WHERE user_id = ?",
-      [req.session.user.id]
-    );
-    
-    const likedSet = new Set(likedRows.map(s => s.audio));
+
+    const likedSet = await getLikedSet(req.session.user.id);
     const playlists = await getUserPlaylists(req.session.user.id);
 
     res.render("index", {
       trending: pop.map(mapSong),
       newReleases: hip.map(mapSong),
       chillPicks: chill.map(mapSong),
-      rock: rock.map(mapSong),
-      jazz: jazz.map(mapSong),
-      latin: latin.map(mapSong),
-      rnb: rnb.map(mapSong),
-      country: country.map(mapSong),
+      rock,
+      jazz,
+      latin,
+      rnb,
+      country,
       playlists,
       likedSet
     });
@@ -158,10 +152,12 @@ app.get("/", requireAuth, async (req, res) => {
       latin: [],
       rnb: [],
       country: [],
-      playlists: []
+      playlists: [],
+      likedSet: new Set()
     });
   }
 });
+
 app.get("/liked", requireAuth, async (req, res) => {
   const [rows] = await db.execute(
     "SELECT * FROM liked_songs WHERE user_id = ?",
@@ -169,16 +165,20 @@ app.get("/liked", requireAuth, async (req, res) => {
   );
 
   const playlists = await getUserPlaylists(req.session.user.id);
+  const likedSet = await getLikedSet(req.session.user.id);
 
   res.render("liked", {
-    songs: rows,   
-    playlists
+    songs: rows,
+    playlists,
+    likedSet
   });
 });
+
 app.get("/recently-played", requireAuth, async (req, res) => {
   const playlists = await getUserPlaylists(req.session.user.id);
+  const likedSet = await getLikedSet(req.session.user.id);
 
-  res.render("recent", { playlists });
+  res.render("recent", { playlists, likedSet });
 });
 
 app.get("/search", requireAuth, async (req, res) => {
@@ -191,8 +191,9 @@ app.get("/search", requireAuth, async (req, res) => {
   }
 
   const playlists = await getUserPlaylists(req.session.user.id);
+  const likedSet = await getLikedSet(req.session.user.id);
 
-  res.render("search", { songs, q, playlists });
+  res.render("search", { songs, q, playlists, likedSet });
 });
 
 app.get("/playlist/:name", requireAuth, async (req, res) => {
@@ -215,123 +216,11 @@ app.get("/playlist/:name", requireAuth, async (req, res) => {
   playlist.songs = songs;
 
   const playlists = await getUserPlaylists(req.session.user.id);
+  const likedSet = await getLikedSet(req.session.user.id);
 
-  res.render("playlist", { playlist, playlists });
+  res.render("playlist", { playlist, playlists, likedSet });
 });
 
-
-
-app.get("/api/playlists", requireAuth, async (req, res) => {
-  const playlists = await getUserPlaylists(req.session.user.id);
-  res.json(playlists);
-});
-
-app.post("/api/playlists", requireAuth, async (req, res) => {
-  const { name } = req.body;
-
-  if (!name) return res.status(400).json({ error: "Name required" });
-
-  try {
-    await db.execute(
-      "INSERT INTO playlists (user_id, name) VALUES (?, ?)",
-      [req.session.user.id, name]
-    );
-
-    res.json({ ok: true });
-  } catch (err) {
-    if (err.code === "ER_DUP_ENTRY") {
-      return res.status(409).json({ error: "Already exists" });
-    }
-    res.status(500).json({ error: "Server error" });
-  }
-});
-
-app.get("/artists", (req, res) => {
-  res.render("artists", { playlists: getPlaylists() });
-});
-
-app.get("/api/artists/search", async (req, res) => {
-  const q = req.query.q?.trim();
-  if (!q || q.length < 2) return res.json({ artist: null, topTracks: [], discography: [] });
-  try {
-    const [artist, topTracks, discography] = await Promise.all([
-      getArtistInfo(q),
-      getTopTracks(q),
-      getDiscography(q),
-    ]);
-    res.json({ artist, topTracks, discography });
-  } catch {
-    res.json({ artist: null, topTracks: [], discography: [] });
-  }
-});
-
-app.put("/api/playlists/:name", (req, res) => {
-  const playlists = getPlaylists();
-  const oldName = decodeURIComponent(req.params.name);
-  const playlist = playlists.find((p) => p.name === oldName);
-
-  if (!playlist) return res.status(404).json({ error: "Not found" });
-
-  let { name, description, genre } = req.body;
-  
-  if (name !== undefined) name = name.trim();
-  if (!name) return res.status(400).json({ error: "Name cannot be empty" });
-
-  if (name !== oldName && playlists.some((p) => p.name === name)) {
-    return res.status(409).json({ error: "Playlist with this name already exists" });
-  }
-
-  playlist.name = name;
-  playlist.description = description ? description.trim() : "";
-  playlist.genre = genre ? genre.trim() : "";
-
-  savePlaylists(playlists);
-  res.json({ ok: true, newName: playlist.name });
-});
-
-app.delete("/api/playlists/:name/song/:idx", (req, res) => {
-  const playlists = getPlaylists();
-  const name = decodeURIComponent(req.params.name);
-
-  const [rows] = await db.execute(
-    "SELECT id FROM playlists WHERE name = ? AND user_id = ?",
-    [name, req.session.user.id]
-  );
-
-  if (rows.length === 0)
-    return res.status(404).json({ error: "Not found" });
-
-  const playlistId = rows[0].id;
-  const song = req.body;
-
-  const [existing] = await db.execute(
-    "SELECT id FROM songs WHERE playlist_id = ? AND audio = ?",
-    [playlistId, song.audio]
-  );
-
-  if (existing.length === 0) {
-    await db.execute(
-      "INSERT INTO songs (playlist_id, name, artist, audio, image) VALUES (?, ?, ?, ?, ?)",
-      [playlistId, song.name, song.artist, song.audio, song.image]
-    );
-  }
-
-  res.json({ ok: true });
-});
-
-app.delete("/api/playlists/:name", requireAuth, async (req, res) => {
-  const name = decodeURIComponent(req.params.name);
-
-  const [result] = await db.execute(
-    "DELETE FROM playlists WHERE name = ? AND user_id = ?",
-    [name, req.session.user.id]
-  );
-
-  if (result.affectedRows === 0)
-    return res.status(404).json({ error: "Not found" });
-
-  res.json({ ok: true });
-});
 app.post("/api/liked", requireAuth, async (req, res) => {
   const song = req.body;
 
@@ -352,13 +241,7 @@ app.post("/api/liked", requireAuth, async (req, res) => {
 
     await db.execute(
       "INSERT INTO liked_songs (user_id, name, artist, audio, image) VALUES (?, ?, ?, ?, ?)",
-      [
-        req.session.user.id,
-        song.name,
-        song.artist,
-        song.audio,
-        song.image
-      ]
+      [req.session.user.id, song.name, song.artist, song.audio, song.image]
     );
 
     res.json({ ok: true, liked: true });
