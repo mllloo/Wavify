@@ -14,14 +14,13 @@
         <h1 class="topbar-greeting">Search</h1>
       </div>
 
-      <div class="topbar-right">
-        <div class="search-bar-wrap">
+      <div class="topbar-right <%= !q ? 'is-hidden' : '' %>">
+        <form class="search-bar-wrap" action="/search" method="GET">
           <span class="search-bar-icon">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
           </span>
-          <input class="search-bar-input" id="searchInput" type="text" value="<%= q %>" placeholder="Songs, artists, albums…" autocomplete="off" autofocus />
-          <div class="search-dropdown" id="searchDropdown"></div>
-        </div>
+          <input class="search-bar-input" id="searchInput" name="q" type="text" value="<%= q %>" placeholder="Songs, artists, albums…" autocomplete="off" autofocus />          <div class="search-dropdown" id="searchDropdown"></div>
+        </form>
       </div>
     </header>
 

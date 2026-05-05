@@ -1,7 +1,4 @@
-/* 
-  lol
-  main front end code for the music player
-*/
+/* Main client-side JavaScript for Wavify */
 
 /* keeps track of the player state */
 const S = {
@@ -391,6 +388,8 @@ function _syncLikeButtons() {
     const liked = audio && S.favorites.some(f => f.audio === audio);
 
     btn.classList.toggle('liked', liked);
+    btn.setAttribute('aria-pressed', liked ? 'true' : 'false');
+    btn.title = liked ? 'Remove from Liked Songs' : 'Add to Liked Songs';
   });
 }
 
@@ -522,7 +521,9 @@ function closeOverlay() {
 
 /* carousel code */
 function initCarousel(wrapper) {
-  if (!wrapper) return;
+  //if (!wrapper) return;
+  if (!wrapper || wrapper.dataset.carouselReady === 'true') return;
+  wrapper.dataset.carouselReady = 'true';
 
   const track   = qs('.carousel-track', wrapper);
   const dotsEl  = qs('.carousel-dots', wrapper);
@@ -706,6 +707,10 @@ function initSearch() {
   input.addEventListener('input', () => {
     clearTimeout(debounceTimer);
 
+    // Reveal the top search bar on first keystroke (home page)
+    const wrap = document.getElementById('topbar-search-wrap');
+    if (wrap && input.value.trim()) wrap.classList.remove('is-hidden');
+
     const q = input.value.trim();
 
     if (!q) {
@@ -785,7 +790,17 @@ function initSearch() {
       if (selectedIdx >= 0) {
         e.preventDefault();
         playFromSearch(selectedIdx);
+      } else if (input.value.trim()) {
+        e.preventDefault();
+        // Navigate to search page if the input is not inside a form
+        const form = input.closest('form');
+        if (form) {
+          form.submit();
+        } else {
+          window.location.href = '/search?q=' + encodeURIComponent(input.value.trim());
+        }
       }
+      // if no item selected, let the form submit naturally (for search page)
 
     } else if (e.key === 'Escape') {
       dropdown.style.display = 'none';
@@ -968,8 +983,14 @@ function addToPlaylist(song, playlistName) {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(song),
-  }).then(r => {
-    showToast(r.ok ? `Added to ${playlistName}` : 'Could not add to playlist');
+  }).then(async r => {
+    if (r.ok) {
+      showToast(`Added to ${playlistName}`);
+    } else {
+      showToast('Could not add to playlist');
+    }
+  }).catch(() => {
+    showToast('Could not add to playlist');
   });
 }
 
