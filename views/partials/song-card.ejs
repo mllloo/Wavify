@@ -6,8 +6,9 @@
   data-image="<%= song.image || '' %>"
   data-queue-group="<%= queueGroup || '' %>"
 >
+<% const isLiked = likedSet?.has(song.audio); %>
   <button
-    class="song-card-like"
+  class="song-card-like <%= isLiked ? 'liked' : '' %>"
     data-name="<%= song.name || '' %>"
     data-artist="<%= song.artist || '' %>"
     data-audio="<%= song.audio || '' %>"

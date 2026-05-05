@@ -404,22 +404,29 @@ function isFavorite(song) {
   return S.favorites.some(f => f.audio === song.audio);
 }
 
-function toggleFavorite(song) {
-  if (!song.audio) return;
+async function toggleFavorite(song) {
+  const res = await fetch("/api/liked", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(song)
+  });
 
-  if (isFavorite(song)) {
-    S.favorites = S.favorites.filter(f => f.audio !== song.audio);
-    showToast('Removed from Liked Songs');
-  } else {
-    S.favorites.unshift(song);
-    showToast('Added to Liked Songs ♥');
+  const data = await res.json();
+
+  if (data.ok) {
+    if (data.liked) {
+      S.favorites.push(song);
+    } else {
+      S.favorites = S.favorites.filter(f => f.audio !== song.audio);
+    }
+
+    localStorage.setItem('wv_favs', JSON.stringify(S.favorites));
+
+    _syncLikeButtons();
+    _syncLikedCount();   
   }
 
-  localStorage.setItem('wv_favs', JSON.stringify(S.favorites));
-
-  _syncHeartBtn(song);
-  _syncLikeButtons();
-  _syncLikedCount();
+  return data;
 }
 
 function toggleCurrentFavorite() {
@@ -1306,7 +1313,8 @@ let _hasRunOnce = false;
 function initOnce() {
   if (_hasRunOnce) return;
   _hasRunOnce = true;
-
+  
+  _syncLikedCount();
   initKeyboard();
   _initProgressBar();
   _initVolumeBar();
