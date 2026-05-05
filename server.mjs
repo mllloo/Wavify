@@ -12,6 +12,7 @@ const db = await mysql.createPool({
   password: "xmwhaylm451i6jlo",
   database: "huc11wckpzagmk50",
 });
+import { getArtistInfo, getTopTracks, getDiscography } from "./services/audiodb.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const app = express();
@@ -245,7 +246,51 @@ app.post("/api/playlists", requireAuth, async (req, res) => {
   }
 });
 
-app.post("/api/playlists/:name/add", requireAuth, async (req, res) => {
+app.get("/artists", (req, res) => {
+  res.render("artists", { playlists: getPlaylists() });
+});
+
+app.get("/api/artists/search", async (req, res) => {
+  const q = req.query.q?.trim();
+  if (!q || q.length < 2) return res.json({ artist: null, topTracks: [], discography: [] });
+  try {
+    const [artist, topTracks, discography] = await Promise.all([
+      getArtistInfo(q),
+      getTopTracks(q),
+      getDiscography(q),
+    ]);
+    res.json({ artist, topTracks, discography });
+  } catch {
+    res.json({ artist: null, topTracks: [], discography: [] });
+  }
+});
+
+app.put("/api/playlists/:name", (req, res) => {
+  const playlists = getPlaylists();
+  const oldName = decodeURIComponent(req.params.name);
+  const playlist = playlists.find((p) => p.name === oldName);
+
+  if (!playlist) return res.status(404).json({ error: "Not found" });
+
+  let { name, description, genre } = req.body;
+  
+  if (name !== undefined) name = name.trim();
+  if (!name) return res.status(400).json({ error: "Name cannot be empty" });
+
+  if (name !== oldName && playlists.some((p) => p.name === name)) {
+    return res.status(409).json({ error: "Playlist with this name already exists" });
+  }
+
+  playlist.name = name;
+  playlist.description = description ? description.trim() : "";
+  playlist.genre = genre ? genre.trim() : "";
+
+  savePlaylists(playlists);
+  res.json({ ok: true, newName: playlist.name });
+});
+
+app.delete("/api/playlists/:name/song/:idx", (req, res) => {
+  const playlists = getPlaylists();
   const name = decodeURIComponent(req.params.name);
 
   const [rows] = await db.execute(
