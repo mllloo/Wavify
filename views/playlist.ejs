@@ -43,13 +43,38 @@
             <% } %>
           </div>
           <div class="playlist-hero-info">
-            <p class="playlist-type">Playlist</p>
+            <p class="playlist-type">Playlist <%= playlist.genre ? `• ${playlist.genre}` : '' %></p>
             <h2 class="playlist-hero-name"><%= playlist.name %></h2>
+            <% if (playlist.description) { %>
+              <p class="playlist-desc" style="opacity:0.8; margin-top:5px; margin-bottom:5px;"><%= playlist.description %></p>
+            <% } %>
             <p class="playlist-count-text"><%= playlist.songs.length %> song<%= playlist.songs.length !== 1 ? 's' : '' %></p>
-            <button class="btn-play-all" onclick="playAllPlaylist()">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg>
-              Play All
-            </button>
+            <div style="display:flex; gap:10px; margin-top:10px;">
+              <button class="btn-play-all" onclick="playAllPlaylist()">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg>
+                Play All
+              </button>
+              <button class="btn-play-all" style="background:#555;" onclick="toggleEditForm()">
+                📝 Edit
+              </button>
+            </div>
+            
+            <div id="edit-playlist-form" style="display:none; margin-top: 15px; padding: 15px; background: #222; border-radius: 8px;">
+              <input type="text" id="edit-pl-name" value="<%= playlist.name %>" placeholder="Playlist Name" style="display:block; width:100%; margin-bottom:10px; padding:8px; border-radius:4px; border:none; background:#333; color:white;">
+              <textarea id="edit-pl-desc" placeholder="Description" style="display:block; width:100%; margin-bottom:10px; padding:8px; border-radius:4px; border:none; background:#333; color:white; resize:vertical;"><%= playlist.description || '' %></textarea>
+              <select id="edit-pl-genre" style="display:block; width:100%; margin-bottom:10px; padding:8px; border-radius:4px; border:none; background:#333; color:white;">
+                <option value="">No Genre / Mood</option>
+                <option value="Pop" <%= playlist.genre === 'Pop' ? 'selected' : '' %>>Pop</option>
+                <option value="Hip Hop" <%= playlist.genre === 'Hip Hop' ? 'selected' : '' %>>Hip Hop</option>
+                <option value="Rock" <%= playlist.genre === 'Rock' ? 'selected' : '' %>>Rock</option>
+                <option value="Chill" <%= playlist.genre === 'Chill' ? 'selected' : '' %>>Chill</option>
+                <option value="Workout" <%= playlist.genre === 'Workout' ? 'selected' : '' %>>Workout</option>
+              </select>
+              <div style="display:flex; gap:10px;">
+                <button onclick="savePlaylistEdit()" style="padding:8px 12px; background:#1db954; border:none; border-radius:4px; color:white; cursor:pointer;">Save</button>
+                <button onclick="deletePlaylist()" style="padding:8px 12px; background:#e22134; border:none; border-radius:4px; color:white; cursor:pointer;">Delete Playlist</button>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -112,6 +137,49 @@
     if (!tracks.length) return;
     const songs = Array.from(tracks).map(t => songFromEl(t));
     playSongWithQueue(songs[0], songs, 0);
+  }
+
+  function toggleEditForm() {
+    const form = document.getElementById("edit-playlist-form");
+    form.style.display = form.style.display === "none" ? "block" : "none";
+  }
+
+  async function savePlaylistEdit() {
+    const newName = document.getElementById("edit-pl-name").value.trim();
+    const desc = document.getElementById("edit-pl-desc").value.trim();
+    const genre = document.getElementById("edit-pl-genre").value;
+    
+    if (!newName) {
+      showToast("Name cannot be empty");
+      return;
+    }
+
+    const currentName = encodeURIComponent("<%= playlist.name %>");
+    const res = await fetch(`/api/playlists/${currentName}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name: newName, description: desc, genre: genre })
+    });
+
+    if (res.ok) {
+      const data = await res.json();
+      showToast("Playlist updated");
+      window.location.href = `/playlist/${encodeURIComponent(data.newName)}`;
+    } else {
+      const err = await res.json();
+      showToast(err.error || "Failed to update playlist");
+    }
+  }
+
+  async function deletePlaylist() {
+    if (!confirm("Are you sure you want to delete this playlist?")) return;
+    const currentName = encodeURIComponent("<%= playlist.name %>");
+    const res = await fetch(`/api/playlists/${currentName}`, { method: "DELETE" });
+    if (res.ok) {
+      window.location.href = "/";
+    } else {
+      showToast("Failed to delete playlist");
+    }
   }
 </script>
 </body>

@@ -25,7 +25,7 @@
     "songs": []
   },
   {
-    "name": "oliver",
+    "name": "Olivier le gros beau gosse",
     "songs": [
       {
         "name": "U Can't Touch This",
@@ -33,6 +33,8 @@
         "audio": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/7e/3e/9e/7e3e9edb-74da-06d8-0bda-2b7c8f757b67/mzaf_7650390354415140006.plus.aac.p.m4a",
         "image": "https://is1-ssl.mzstatic.com/image/thumb/Music122/v4/0c/a5/7c/0ca57c94-601d-f973-eb79-3941573aac7c/13UABIM74018.rgb.jpg/100x100bb.jpg"
       }
-    ]
+    ],
+    "description": "",
+    "genre": ""
   }
 ]
