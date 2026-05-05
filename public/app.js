@@ -6,6 +6,7 @@ const S = {
   currentIndex:  -1,
   isPlaying:     false,
   isShuffle:     false,
+  shuffleOrder:  [], // remaining indices to play in shuffle mode
   repeatMode:    0, // 0=off 1=all 2=one
   isMuted:       false,
   volume:        parseFloat(localStorage.getItem('wv_vol') ?? '0.7'),
@@ -35,6 +36,20 @@ function fmtTime(s) {
   return `${m}:${String(Math.floor(s % 60)).padStart(2, '0')}`;
 }
 
+/* build a shuffled list of all queue indices except the current one */
+function _buildShuffleOrder(excludeIndex) {
+  const indices = [];
+  for (let i = 0; i < S.queue.length; i++) {
+    if (i !== excludeIndex) indices.push(i);
+  }
+  // Fisher-Yates shuffle
+  for (let i = indices.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [indices[i], indices[j]] = [indices[j], indices[i]];
+  }
+  return indices;
+}
+
 function qs(sel, ctx = document)  { return ctx.querySelector(sel); }
 function qsa(sel, ctx = document) { return [...ctx.querySelectorAll(sel)]; }
 
@@ -42,6 +57,8 @@ function qsa(sel, ctx = document) { return [...ctx.querySelectorAll(sel)]; }
 function playSongWithQueue(song, queue, index) {
   S.queue        = queue;
   S.currentIndex = index;
+  // reset shuffle order so it covers the new queue minus the starting song
+  if (S.isShuffle) S.shuffleOrder = _buildShuffleOrder(index);
   _loadAndPlay(song);
   _savePlaybackState();
 }
@@ -49,6 +66,7 @@ function playSongWithQueue(song, queue, index) {
 function playSong(song) {
   S.queue        = [song];
   S.currentIndex = 0;
+  S.shuffleOrder = [];
   _loadAndPlay(song);
   _savePlaybackState();
 }
@@ -100,17 +118,32 @@ function nextSong() {
     return;
   }
 
-  let next = S.currentIndex + 1;
+  let next;
 
-  if (S.isShuffle) next = Math.floor(Math.random() * S.queue.length);
+  if (S.isShuffle) {
+    // if the shuffle order is exhausted, rebuild it (for repeat-all) or stop
+    if (!S.shuffleOrder.length) {
+      if (S.repeatMode === 1) {
+        S.shuffleOrder = _buildShuffleOrder(-1); // all indices
+      } else {
+        audio.pause();
+        S.isPlaying = false;
+        _updatePlayBtn();
+        return;
+      }
+    }
+    next = S.shuffleOrder.shift();
+  } else {
+    next = S.currentIndex + 1;
 
-  if (next >= S.queue.length) {
-    if (S.repeatMode === 1) next = 0;
-    else {
-      audio.pause();
-      S.isPlaying = false;
-      _updatePlayBtn();
-      return;
+    if (next >= S.queue.length) {
+      if (S.repeatMode === 1) next = 0;
+      else {
+        audio.pause();
+        S.isPlaying = false;
+        _updatePlayBtn();
+        return;
+      }
     }
   }
 
@@ -330,6 +363,12 @@ function toggleMute() {
 /* shuffle and repeat */
 function toggleShuffle() {
   S.isShuffle = !S.isShuffle;
+  // rebuild the shuffle order from the current position when turning on
+  if (S.isShuffle) {
+    S.shuffleOrder = _buildShuffleOrder(S.currentIndex);
+  } else {
+    S.shuffleOrder = [];
+  }
   qs('#btn-shuffle')?.classList.toggle('active', S.isShuffle);
   showToast(S.isShuffle ? 'Shuffle on' : 'Shuffle off');
 }
