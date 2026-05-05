@@ -7,7 +7,23 @@
     "dev": "node --watch server.mjs"
   },
   "dependencies": {
-    "express": "^4.18.2",
-    "ejs": "^3.1.9"
-  }
+    "bcrypt": "^6.0.0",
+    "ejs": "^3.1.10",
+    "express": "^4.22.1",
+    "express-session": "^1.19.0",
+    "mysql2": "^3.22.3"
+  },
+  "description": "Wavify is a music app that lets users preview songs best thirty seconds, like, search, and create playlists. The app will use a free music API (iTunes) to get song, artist, and album data and display it in the app.",
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mllloo/Wavify.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/mllloo/Wavify/issues"
+  },
+  "homepage": "https://github.com/mllloo/Wavify#readme"
 }
