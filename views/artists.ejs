@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><%- include("partials/head", { pageTitle: "Artists" }) %></head>
+<body>
+
+<div class="app-layout">
+  <%- include("partials/sidebar", { activePage: "artists" }) %>
+
+  <div class="main-area">
+    <header class="topbar">
+      <div class="topbar-left">
+        <h1 class="topbar-greeting">Artists</h1>
+      </div>
+    </header>
+
+    <main class="page-content">
+
+      <div class="artist-search-wrap">
+        <div class="artist-search-bar">
+          <span class="artist-search-icon">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          </span>
+          <input
+            id="artistInput"
+            class="artist-search-input"
+            type="text"
+            placeholder="Search an artist…"
+            autocomplete="off"
+            autofocus
+          />
+          <div class="artist-search-spinner" id="artistSpinner"></div>
+        </div>
+      </div>
+
+      <div id="artistResult" class="artist-result" style="display:none">
+
+        <div class="artist-hero" id="artistHero">
+          <div class="artist-hero-overlay"></div>
+          <div class="artist-hero-content">
+            <img class="artist-thumb" id="artistThumb" src="" alt="" />
+            <div class="artist-hero-info">
+              <div class="artist-hero-label">Artist</div>
+              <h2 class="artist-hero-name" id="artistName"></h2>
+              <div class="artist-hero-meta" id="artistMeta"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="artist-body">
+
+          <div class="artist-columns">
+
+            <div class="artist-col-main">
+
+              <section class="artist-section" id="sectionTracks" style="display:none">
+                <h3 class="artist-section-title">Popular tracks</h3>
+                <div class="artist-tracklist" id="artistTracks"></div>
+              </section>
+
+              <section class="artist-section" id="sectionBio" style="display:none">
+                <h3 class="artist-section-title">About</h3>
+                <div class="artist-bio-wrap">
+                  <p class="artist-bio" id="artistBio"></p>
+                  <div class="artist-links" id="artistLinks"></div>
+                </div>
+              </section>
+
+            </div>
+
+            <div class="artist-col-side">
+
+              <section class="artist-section" id="sectionDisc" style="display:none">
+                <h3 class="artist-section-title">Discography</h3>
+                <div class="artist-discography" id="artistDisc"></div>
+              </section>
+
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+      <div id="artistEmpty" class="artist-empty">
+        <div class="artist-empty-icon">🎤</div>
+        <p>Search for an artist to see their profile</p>
+      </div>
+
+      <div id="artistNotFound" class="artist-empty" style="display:none">
+        <div class="artist-empty-icon">😕</div>
+        <p id="artistNotFoundMsg"></p>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<%- include("partials/playlist-picker", { playlists }) %>
+<%- include("partials/player") %>
+
+<script src="/app.js"></script>
+<script>
+  initPage();
+
+  const input   = document.getElementById("artistInput");
+  const spinner = document.getElementById("artistSpinner");
+  const result  = document.getElementById("artistResult");
+  const empty   = document.getElementById("artistEmpty");
+  const notFound = document.getElementById("artistNotFound");
+  const notFoundMsg = document.getElementById("artistNotFoundMsg");
+
+  let debounce = null;
+
+  input.addEventListener("input", () => {
+    clearTimeout(debounce);
+    const q = input.value.trim();
+    if (!q) {
+      showEmpty();
+      return;
+    }
+    spinner.classList.add("active");
+    debounce = setTimeout(() => fetchArtist(q), 420);
+  });
+
+  input.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      clearTimeout(debounce);
+      const q = input.value.trim();
+      if (q) fetchArtist(q);
+    }
+  });
+
+  async function fetchArtist(q) {
+    try {
+      const res  = await fetch(`/api/artists/search?q=${encodeURIComponent(q)}`);
+      const data = await res.json();
+      spinner.classList.remove("active");
+      if (!data.artist) {
+        showNotFound(q);
+      } else {
+        renderArtist(data);
+      }
+    } catch {
+      spinner.classList.remove("active");
+      showNotFound(q);
+    }
+  }
+
+  function showEmpty() {
+    result.style.display   = "none";
+    notFound.style.display = "none";
+    empty.style.display    = "block";
+    spinner.classList.remove("active");
+  }
+
+  function showNotFound(q) {
+    result.style.display   = "none";
+    empty.style.display    = "none";
+    notFound.style.display = "block";
+    notFoundMsg.textContent = `No artist found for "${q}"`;
+  }
+
+  function renderArtist({ artist, topTracks, discography }) {
+    empty.style.display    = "none";
+    notFound.style.display = "none";
+    result.style.display   = "block";
+
+    const hero = document.getElementById("artistHero");
+    const bg = artist.fanart || artist.banner || "";
+    hero.style.backgroundImage = bg ? `url('${bg}')` : "";
+
+    const thumb = document.getElementById("artistThumb");
+    if (artist.thumb) {
+      thumb.src = artist.thumb;
+      thumb.style.display = "block";
+    } else {
+      thumb.style.display = "none";
+    }
+
+    document.getElementById("artistName").textContent = artist.name;
+
+    const meta = document.getElementById("artistMeta");
+    meta.innerHTML = [
+      artist.genre     ? `<span class="badge">${esc(artist.genre)}</span>` : "",
+      artist.mood      ? `<span class="badge badge-mood">${esc(artist.mood)}</span>` : "",
+      artist.country   ? `<span class="artist-meta-text">${esc(artist.country)}</span>` : "",
+      artist.formedYear ? `<span class="artist-meta-text">Formed ${artist.formedYear}</span>` : "",
+      artist.members > 1 ? `<span class="artist-meta-text">${artist.members} members</span>` : "",
+    ].join("");
+
+    const secTracks = document.getElementById("sectionTracks");
+    const tracksEl  = document.getElementById("artistTracks");
+    if (topTracks && topTracks.length) {
+      tracksEl.innerHTML = topTracks.map((t, i) => `
+        <div class="artist-track-row">
+          <span class="artist-track-num">${i + 1}</span>
+          ${t.thumb
+            ? `<img class="artist-track-img" src="${esc(t.thumb)}" alt="" />`
+            : `<div class="artist-track-img artist-track-img-placeholder">♪</div>`
+          }
+          <div class="artist-track-info">
+            <div class="artist-track-name">${esc(t.name)}</div>
+            ${t.album ? `<div class="artist-track-album">${esc(t.album)}</div>` : ""}
+          </div>
+          ${t.musicVid ? `
+            <a class="artist-track-vid" href="${esc(t.musicVid)}" target="_blank" rel="noopener" title="Watch video">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M10 16.5l6-4.5-6-4.5v9zM12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/></svg>
+            </a>` : ""}
+        </div>
+      `).join("");
+      secTracks.style.display = "block";
+    } else {
+      secTracks.style.display = "none";
+    }
+
+    const secBio = document.getElementById("sectionBio");
+    const bioEl  = document.getElementById("artistBio");
+    const linksEl = document.getElementById("artistLinks");
+    if (artist.biography) {
+      const full = artist.biography;
+      const short = full.slice(0, 600);
+      const hasMore = full.length > 600;
+      bioEl.innerHTML = hasMore
+        ? `${esc(short)}<span id="bioMore" style="display:none">${esc(full.slice(600))}</span>… <button class="bio-read-more" onclick="expandBio()">Read more</button>`
+        : esc(full);
+      linksEl.innerHTML = [
+        artist.website ? `<a href="https://${esc(artist.website)}" target="_blank" rel="noopener">🌐 Website</a>` : "",
+        artist.twitter ? `<a href="https://twitter.com/${esc(artist.twitter)}" target="_blank" rel="noopener">𝕏 Twitter</a>` : "",
+      ].join("");
+      secBio.style.display = "block";
+    } else {
+      secBio.style.display = "none";
+    }
+
+    const secDisc = document.getElementById("sectionDisc");
+    const discEl  = document.getElementById("artistDisc");
+    if (discography && discography.length) {
+      discEl.innerHTML = discography.map(a => `
+        <div class="artist-album-row">
+          <span class="artist-album-name">${esc(a.name)}</span>
+          ${a.year ? `<span class="artist-album-year">${a.year}</span>` : ""}
+        </div>
+      `).join("");
+      secDisc.style.display = "block";
+    } else {
+      secDisc.style.display = "none";
+    }
+  }
+
+  function expandBio() {
+    document.getElementById("bioMore").style.display = "inline";
+    document.querySelector(".bio-read-more").remove();
+    const dots = document.querySelector("#artistBio");
+    if (dots) dots.innerHTML = dots.innerHTML.replace("…", "");
+  }
+
+  function esc(str) {
+    return String(str || "")
+      .replace(/&/g,"&amp;")
+      .replace(/</g,"&lt;")
+      .replace(/>/g,"&gt;")
+      .replace(/"/g,"&quot;");
+  }
+
+  window.expandBio = expandBio;
+</script>
+</body>
+</html>

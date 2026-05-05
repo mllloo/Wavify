@@ -3,6 +3,7 @@ import express from "express";
 import { readFileSync, writeFileSync, existsSync } from "fs";
 import { fileURLToPath } from "url";
 import { dirname, join } from "path";
+import { getArtistInfo, getTopTracks, getDiscography } from "./services/audiodb.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const app = express();
@@ -154,6 +155,25 @@ app.post("/api/playlists/:name/add", (req, res) => {
     res.json({ ok: true, added: true });
   } else {
     res.json({ ok: true, added: false });
+  }
+});
+
+app.get("/artists", (req, res) => {
+  res.render("artists", { playlists: getPlaylists() });
+});
+
+app.get("/api/artists/search", async (req, res) => {
+  const q = req.query.q?.trim();
+  if (!q || q.length < 2) return res.json({ artist: null, topTracks: [], discography: [] });
+  try {
+    const [artist, topTracks, discography] = await Promise.all([
+      getArtistInfo(q),
+      getTopTracks(q),
+      getDiscography(q),
+    ]);
+    res.json({ artist, topTracks, discography });
+  } catch {
+    res.json({ artist: null, topTracks: [], discography: [] });
   }
 });
 
