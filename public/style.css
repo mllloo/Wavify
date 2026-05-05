@@ -274,6 +274,10 @@ img { display: block; }
 }
 .search-bar-input::placeholder { color: var(--text-dim); }
 
+.topbar-right.is-hidden {
+  display: none;
+}
+
 /* Search dropdown */
 .search-dropdown {
   position: absolute;
@@ -361,7 +365,7 @@ img { display: block; }
 .see-all:hover { opacity: 0.75; }
 .text-muted { color: var(--text-muted); font-size: 0.82rem; }
 
-/* carousel !!DOESNT WORK!!*/
+/* Carousel */
 .carousel-section { margin-bottom: 44px; }
 
 .carousel-wrapper {
@@ -594,7 +598,7 @@ img { display: block; }
   border: none;
   color: rgba(255,255,255,0.4);
   display: flex; align-items: center; justify-content: center;
-  opacity: 0;
+  opacity: 1;
   transition: all var(--transition);
 }
 .song-card:hover .song-card-like { opacity: 1; }
@@ -1383,4 +1387,27 @@ img { display: block; }
 
 .track-actions .song-card-like.liked {
   color: var(--accent);
+}
+
+.song-row-scroll {
+  display: flex;
+  gap: 14px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding-bottom: 12px;
+  scroll-snap-type: x proximity;
+}
+
+.song-row-scroll .song-card {
+  flex: 0 0 165px;
+  scroll-snap-align: start;
+}
+
+.song-row-scroll::-webkit-scrollbar {
+  height: 8px;
+}
+
+.song-row-scroll::-webkit-scrollbar-thumb {
+  background: var(--border-hover);
+  border-radius: 999px;
 }

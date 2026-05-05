@@ -1,7 +1,4 @@
-/* 
-  lol
-  main front end code for the music player
-*/
+/* Main client-side JavaScript for Wavify */
 
 /* keeps track of the player state */
 const S = {
@@ -391,6 +388,8 @@ function _syncLikeButtons() {
     const liked = audio && S.favorites.some(f => f.audio === audio);
 
     btn.classList.toggle('liked', liked);
+    btn.setAttribute('aria-pressed', liked ? 'true' : 'false');
+    btn.title = liked ? 'Remove from Liked Songs' : 'Add to Liked Songs';
   });
 }
 
@@ -522,7 +521,9 @@ function closeOverlay() {
 
 /* carousel code */
 function initCarousel(wrapper) {
-  if (!wrapper) return;
+  //if (!wrapper) return;
+  if (!wrapper || wrapper.dataset.carouselReady === 'true') return;
+  wrapper.dataset.carouselReady = 'true';
 
   const track   = qs('.carousel-track', wrapper);
   const dotsEl  = qs('.carousel-dots', wrapper);
@@ -968,8 +969,14 @@ function addToPlaylist(song, playlistName) {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(song),
-  }).then(r => {
-    showToast(r.ok ? `Added to ${playlistName}` : 'Could not add to playlist');
+  }).then(async r => {
+    if (r.ok) {
+      showToast(`Added to ${playlistName}`);
+    } else {
+      showToast('Could not add to playlist');
+    }
+  }).catch(() => {
+    showToast('Could not add to playlist');
   });
 }
 

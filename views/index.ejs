@@ -91,7 +91,7 @@
             <span class="text-muted"><%= section.subtitle %></span>
           </div>
 
-          <div class="song-grid">
+          <div class="song-grid song-row-scroll">
             <% section.songs.forEach((song) => { %>
               <%- include("partials/song-card", { song, queueGroup: section.group }) %>
             <% }) %>
@@ -109,7 +109,6 @@
 <script src="/app.js"></script>
 <script>
   initPage();
-  initCarousel(document.getElementById('hero-carousel'));
 
   // greeting
   const hour = new Date().getHours();
