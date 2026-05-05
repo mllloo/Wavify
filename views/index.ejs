@@ -15,7 +15,7 @@
         <h1 class="topbar-greeting" id="greeting">Good evening</h1>
       </div>
 
-      <div class="topbar-right">
+      <div class="topbar-right is-hidden" id="topbar-search-wrap">
         <div class="search-bar-wrap">
           <span class="search-bar-icon">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
@@ -88,10 +88,17 @@
         <section class="grid-section">
           <div class="section-header">
             <h2 class="section-title"><%= section.title %></h2>
-            <span class="text-muted"><%= section.subtitle %></span>
+            <div class="section-scroll-btns">
+              <button class="section-scroll-btn section-scroll-prev" aria-label="Previous">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M15.41 7.41 14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>
+              </button>
+              <button class="section-scroll-btn section-scroll-next" aria-label="Next">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m8.59 16.59 1.41 1.41 6-6-6-6-1.41 1.41L13.17 12z"/></svg>
+              </button>
+            </div>
           </div>
 
-          <div class="song-grid">
+          <div class="song-grid song-row-scroll">
             <% section.songs.forEach((song) => { %>
               <%- include("partials/song-card", { song, queueGroup: section.group }) %>
             <% }) %>
@@ -109,7 +116,6 @@
 <script src="/app.js"></script>
 <script>
   initPage();
-  initCarousel(document.getElementById('hero-carousel'));
 
   // greeting
   const hour = new Date().getHours();

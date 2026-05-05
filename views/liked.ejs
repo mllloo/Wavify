@@ -1,0 +1,143 @@
+<!-- liked.ejs -->
+<!DOCTYPE html>
+<html lang="en">
+<head><%- include("partials/head", { pageTitle: "Liked Songs" }) %></head>
+<body>
+
+<div class="app-layout">
+  <%- include("partials/sidebar", { activePage: "liked" }) %>
+
+  <div class="main-area">
+    <header class="topbar">
+      <div class="topbar-left">
+        <a href="/" class="topbar-back">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+        </a>
+        <h1 class="topbar-greeting">Liked Songs</h1>
+      </div>
+      <div class="topbar-right">
+        <div class="search-bar-wrap">
+          <span class="search-bar-icon">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          </span>
+          <input class="search-bar-input" id="searchInput" type="text" placeholder="Songs, artists, albums…" autocomplete="off" />
+          <div class="search-dropdown" id="searchDropdown"></div>
+        </div>
+      </div>
+    </header>
+
+    <main class="page-content">
+      <!-- hero -->
+      <div class="playlist-hero liked-hero">
+        <div class="liked-hero-icon">
+          <svg width="56" height="56" viewBox="0 0 24 24" fill="white">
+            <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+          </svg>
+        </div>
+        <div class="playlist-hero-info">
+          <p class="playlist-type">Auto playlist</p>
+          <h2 class="playlist-hero-name">Liked Songs</h2>
+          <p class="playlist-count-text" id="liked-count-text">0 songs</p>
+          <button class="btn-play-all" id="btn-play-liked">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg>
+            Play All
+          </button>
+        </div>
+      </div>
+
+      <!-- track list (filled by JS from localStorage) -->
+      <div class="playlist-track-list" id="liked-track-list">
+        <div class="search-empty" id="liked-empty" style="display:none">
+          <div class="search-empty-icon">🤍</div>
+          <p>No liked songs yet</p>
+          <p class="text-muted">Click the heart on any song to add it here</p>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<%- include("partials/player") %>
+<script src="/app.js"></script>
+<script>
+  initPage();
+
+  function renderLikedPage() {
+    const list    = document.getElementById('liked-track-list');
+    const empty   = document.getElementById('liked-empty');
+    const countEl = document.getElementById('liked-count-text');
+    const favs    = S.favorites;
+
+    // update count
+    countEl.textContent = favs.length + ' song' + (favs.length !== 1 ? 's' : '');
+
+    // remove old tracks (keep empty msg)
+    list.querySelectorAll('.playlist-track').forEach(el => el.remove());
+
+    if (!favs.length) {
+      empty.style.display = 'block';
+      return;
+    }
+
+    empty.style.display = 'none';
+
+    favs.forEach((song, i) => {
+      const div = document.createElement('div');
+      div.className = 'playlist-track';
+      div.dataset.name   = song.name   || '';
+      div.dataset.artist = song.artist || '';
+      div.dataset.audio  = song.audio  || '';
+      div.dataset.image  = song.image  || '';
+      div.dataset.queueGroup = 'liked-page';
+
+      div.innerHTML = `
+        <span class="track-num">${i + 1}</span>
+        <img class="track-img" src="${song.image || ''}" alt="" />
+        <div class="track-info">
+          <p class="track-name">${escHtml(song.name)}</p>
+          <p class="track-artist">${escHtml(song.artist)}</p>
+        </div>
+        <div class="track-actions track-actions-liked">
+          <button class="song-card-like liked"
+            data-name="${escHtml(song.name)}"
+            data-artist="${escHtml(song.artist)}"
+            data-audio="${song.audio || ''}"
+            data-image="${song.image || ''}"
+            title="Remove from Liked Songs">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+            </svg>
+          </button>
+        </div>
+      `;
+
+      // play on row click
+      div.addEventListener('click', e => {
+        if (e.target.closest('.track-actions')) return;
+        const allSongs = S.favorites;
+        playSongWithQueue(song, allSongs, i);
+      });
+
+      // unlike button
+      div.querySelector('.song-card-like').addEventListener('click', e => {
+        e.stopPropagation();
+        toggleFavorite(song);
+        renderLikedPage();
+      });
+
+      list.appendChild(div);
+    });
+
+    // re-init song card groups for queue
+    initSongCards();
+  }
+
+  document.getElementById('btn-play-liked').addEventListener('click', () => {
+    if (!S.favorites.length) return;
+    playSongWithQueue(S.favorites[0], S.favorites, 0);
+  });
+
+  renderLikedPage();
+</script>
+</body>
+</html>

@@ -131,6 +131,11 @@ app.post("/api/playlists", (req, res) => {
   res.json({ ok: true });
 });
 
+/* liked songs page */
+app.get("/liked", (req, res) => {
+  res.render("liked", { playlists: getPlaylists() });
+});
+
 app.post("/api/playlists/:name/add", (req, res) => {
   const playlists = getPlaylists();
   const name = decodeURIComponent(req.params.name);
