@@ -707,6 +707,10 @@ function initSearch() {
   input.addEventListener('input', () => {
     clearTimeout(debounceTimer);
 
+    // Reveal the top search bar on first keystroke (home page)
+    const wrap = document.getElementById('topbar-search-wrap');
+    if (wrap && input.value.trim()) wrap.classList.remove('is-hidden');
+
     const q = input.value.trim();
 
     if (!q) {
@@ -786,7 +790,17 @@ function initSearch() {
       if (selectedIdx >= 0) {
         e.preventDefault();
         playFromSearch(selectedIdx);
+      } else if (input.value.trim()) {
+        e.preventDefault();
+        // Navigate to search page if the input is not inside a form
+        const form = input.closest('form');
+        if (form) {
+          form.submit();
+        } else {
+          window.location.href = '/search?q=' + encodeURIComponent(input.value.trim());
+        }
       }
+      // if no item selected, let the form submit naturally (for search page)
 
     } else if (e.key === 'Escape') {
       dropdown.style.display = 'none';
