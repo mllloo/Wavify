@@ -152,6 +152,61 @@ app.post("/api/playlists/:name/add", (req, res) => {
   res.json({ ok: true });
 });
 
+app.put("/api/playlists/:name", (req, res) => {
+  const playlists = getPlaylists();
+  const oldName = decodeURIComponent(req.params.name);
+  const playlist = playlists.find((p) => p.name === oldName);
+
+  if (!playlist) return res.status(404).json({ error: "Not found" });
+
+  let { name, description, genre } = req.body;
+  
+  if (name !== undefined) name = name.trim();
+  if (!name) return res.status(400).json({ error: "Name cannot be empty" });
+
+  if (name !== oldName && playlists.some((p) => p.name === name)) {
+    return res.status(409).json({ error: "Playlist with this name already exists" });
+  }
+
+  playlist.name = name;
+  playlist.description = description ? description.trim() : "";
+  playlist.genre = genre ? genre.trim() : "";
+
+  savePlaylists(playlists);
+  res.json({ ok: true, newName: playlist.name });
+});
+
+app.delete("/api/playlists/:name/song/:idx", (req, res) => {
+  const playlists = getPlaylists();
+  const name = decodeURIComponent(req.params.name);
+  const playlist = playlists.find((p) => p.name === name);
+
+  if (!playlist) return res.status(404).json({ error: "Not found" });
+
+  const idx = parseInt(req.params.idx, 10);
+  if (isNaN(idx) || idx < 0 || idx >= playlist.songs.length) {
+    return res.status(400).json({ error: "Invalid song index" });
+  }
+
+  playlist.songs.splice(idx, 1);
+  savePlaylists(playlists);
+  res.json({ ok: true });
+});
+
+app.delete("/api/playlists/:name", (req, res) => {
+  let playlists = getPlaylists();
+  const name = decodeURIComponent(req.params.name);
+  const initialLength = playlists.length;
+  playlists = playlists.filter((p) => p.name !== name);
+  
+  if (playlists.length === initialLength) {
+    return res.status(404).json({ error: "Not found" });
+  }
+  
+  savePlaylists(playlists);
+  res.json({ ok: true });
+});
+
 app.listen(PORT, () => {
   console.log(`running http://localhost:${PORT}`);
 });
