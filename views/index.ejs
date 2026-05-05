@@ -88,7 +88,14 @@
         <section class="grid-section">
           <div class="section-header">
             <h2 class="section-title"><%= section.title %></h2>
-            <span class="text-muted"><%= section.subtitle %></span>
+            <div class="section-scroll-btns">
+              <button class="section-scroll-btn section-scroll-prev" aria-label="Previous">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M15.41 7.41 14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>
+              </button>
+              <button class="section-scroll-btn section-scroll-next" aria-label="Next">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m8.59 16.59 1.41 1.41 6-6-6-6-1.41 1.41L13.17 12z"/></svg>
+              </button>
+            </div>
           </div>
 
           <div class="song-grid song-row-scroll">
