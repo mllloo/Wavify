@@ -7,9 +7,9 @@
     <button class="playlist-picker-option" onclick="promptNewPlaylist()">Create a playlist first</button>
   <% } else { %>
     <% playlists.forEach((pl) => { %>
-      <button class="playlist-picker-option" onclick="pickPlaylist('<%= encodeURIComponent(pl.name) %>')">
+        <button class="playlist-picker-option" data-playlist-name="<%= pl.name %>" data-song-audios="<%= encodeURIComponent(JSON.stringify(pl.songs.map(s => s.audio || ''))) %>" onclick="pickPlaylist('<%= encodeURIComponent(pl.name) %>')">
         <span><%= pl.name %></span>
-        <small><%= pl.songs.length %></small>
+        <span class="playlist-picker-ok" aria-hidden="true">✔</span>
       </button>
     <% }) %>
   <% } %>

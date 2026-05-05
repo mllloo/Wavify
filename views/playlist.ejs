@@ -48,7 +48,7 @@
             <% if (playlist.description) { %>
               <p class="playlist-desc" style="opacity:0.8; margin-top:5px; margin-bottom:5px;"><%= playlist.description %></p>
             <% } %>
-            <p class="playlist-count-text"><%= playlist.songs.length %> song<%= playlist.songs.length !== 1 ? 's' : '' %></p>
+            <p class="playlist-count-text" id="playlist-count-text"><%= playlist.songs.length %> song<%= playlist.songs.length !== 1 ? 's' : '' %></p>
             <div style="display:flex; gap:10px; margin-top:10px;">
               <button class="btn-play-all" onclick="playAllPlaylist()">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg>
@@ -124,7 +124,23 @@
         const pl  = btn.dataset.playlist;
         const res = await fetch(`/api/playlists/${pl}/song/${idx}`, { method: "DELETE" });
         if (res.ok) {
-          btn.closest(".playlist-track").remove();
+          const row = btn.closest(".playlist-track");
+          row.remove();
+          _updatePlaylistCount(decodeURIComponent(pl), -1);
+          _syncPlaylistCountText();
+          _syncPlaylistTrackNumbers();
+
+          const list = document.getElementById("playlist-tracks");
+          if (list && !list.querySelector(".playlist-track")) {
+            list.innerHTML = `
+              <div class="search-empty">
+                <div class="search-empty-icon">🎵</div>
+                <p>This playlist is empty</p>
+                <p class="text-muted">Search for songs and add them here</p>
+              </div>
+            `;
+          }
+
           showToast("Removed from playlist");
         }
       });
@@ -180,6 +196,23 @@
     } else {
       showToast("Failed to delete playlist");
     }
+  }
+
+  function _syncPlaylistCountText() {
+    const countText = document.getElementById('playlist-count-text');
+    if (!countText) return;
+
+    const tracks = document.querySelectorAll('#playlist-tracks .playlist-track').length;
+    countText.textContent = tracks + ' song' + (tracks !== 1 ? 's' : '');
+  }
+
+  function _syncPlaylistTrackNumbers() {
+    document.querySelectorAll('#playlist-tracks .playlist-track').forEach((track, index) => {
+      const num = track.querySelector('.track-num');
+      if (num) num.textContent = index + 1;
+      const removeBtn = track.querySelector('.track-remove');
+      if (removeBtn) removeBtn.dataset.idx = index;
+    });
   }
 </script>
 </body>
