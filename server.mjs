@@ -219,7 +219,11 @@ app.get("/liked", requireAuth, (req, res) => {
   res.render("liked", { playlists: getPlaylists().filter(p => p.userId === req.session.user.id) });
 });
 
-app.post("/api/playlists/:name/add", requireAuth, (req, res) => {
+app.get("/recently-played", (req, res) => {
+  res.render("recent", { playlists: getPlaylists() });
+});
+
+app.post("/api/playlists/:name/add", (req, res) => {
   const playlists = getPlaylists();
   const name = decodeURIComponent(req.params.name);
   const playlist = playlists.find((p) => p.name === name && p.userId === req.session.user.id);
@@ -230,9 +234,10 @@ app.post("/api/playlists/:name/add", requireAuth, (req, res) => {
   if (!playlist.songs.some((s) => s.audio === song.audio)) {
     playlist.songs.push(song);
     savePlaylists(playlists);
+    res.json({ ok: true, added: true });
+  } else {
+    res.json({ ok: true, added: false });
   }
-
-  res.json({ ok: true });
 });
 
 app.put("/api/playlists/:name", requireAuth, (req, res) => {

@@ -111,14 +111,16 @@
         </div>
       `;
 
-      // play on row click
+      // play on row click — read index dynamically from DOM position
       div.addEventListener('click', e => {
         if (e.target.closest('.track-actions')) return;
-        const allSongs = S.favorites;
-        playSongWithQueue(song, allSongs, i);
+        const tracks = Array.from(list.querySelectorAll('.playlist-track'));
+        const currentIdx = tracks.indexOf(div);
+        const allSongs = S.favorites.slice(); // snapshot at click time
+        playSongWithQueue(song, allSongs, currentIdx);
       });
 
-      // unlike button
+      // unlike button — toggle then re-render (no initSongCards to avoid double listeners)
       div.querySelector('.song-card-like').addEventListener('click', e => {
         e.stopPropagation();
         toggleFavorite(song);
@@ -127,9 +129,6 @@
 
       list.appendChild(div);
     });
-
-    // re-init song card groups for queue
-    initSongCards();
   }
 
   document.getElementById('btn-play-liked').addEventListener('click', () => {

@@ -1,38 +1,102 @@
 [
   {
     "name": "Favorites",
-    "userId": 5,
-    "songs": []
+    "songs": [
+      {
+        "name": "Gettin' Jiggy Wit It",
+        "artist": "Will Smith",
+        "audio": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview125/v4/4e/b5/7f/4eb57fde-16b2-e64e-cdb3-1362d2ff8c98/mzaf_17690539797995316515.plus.aac.p.m4a",
+        "image": "https://is1-ssl.mzstatic.com/image/thumb/Music115/v4/96/47/9d/96479d49-1ccd-ea1a-7bee-6750a73f363f/mzi.haxmzhnz.jpg/100x100bb.jpg"
+      }
+    ]
   },
   {
     "name": "millo",
-    "userId": 5,
     "songs": [
       {
         "name": "Heartless",
         "artist": "Kanye West",
         "audio": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview115/v4/c9/24/96/c9249688-ffdc-40c1-d56e-d84ee8537ed7/mzaf_15473080214798193650.plus.aac.p.m4a",
         "image": "https://is1-ssl.mzstatic.com/image/thumb/Music125/v4/4d/75/2d/4d752db1-022d-f65d-40a1-a2390f01427a/13UAEIM26465.rgb.jpg/100x100bb.jpg"
+      },
+      {
+        "name": "ALL THE LOVE",
+        "artist": "Kanye West & Andre Troutman",
+        "audio": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/0d/a6/f0/0da6f0f2-0145-676d-9f9c-d28c7e08f258/mzaf_2658965377541339594.plus.aac.p.m4a",
+        "image": "https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/4b/38/d1/4b38d146-381d-ace2-73df-24074576e62b/656465138828_cover.jpg/100x100bb.jpg"
+      },
+      {
+        "name": "Hip-Hop (feat. Jay Jones)",
+        "artist": "Lil Wayne & BigXthaPlug",
+        "audio": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/83/1b/2c/831b2c19-c251-0c8a-dd85-37f7e5c18303/mzaf_2012424396012241837.plus.aac.p.m4a",
+        "image": "https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/10/79/e6/1079e660-807d-d7ec-3319-5058b052614c/25UMGIM80414.rgb.jpg/100x100bb.jpg"
+      },
+      {
+        "name": "Gettin' Jiggy Wit It",
+        "artist": "Will Smith",
+        "audio": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview125/v4/4e/b5/7f/4eb57fde-16b2-e64e-cdb3-1362d2ff8c98/mzaf_17690539797995316515.plus.aac.p.m4a",
+        "image": "https://is1-ssl.mzstatic.com/image/thumb/Music115/v4/96/47/9d/96479d49-1ccd-ea1a-7bee-6750a73f363f/mzi.haxmzhnz.jpg/100x100bb.jpg"
       }
     ]
   },
   {
     "name": "rap",
-    "userId": 6,
-    "songs": []
+    "songs": [
+      {
+        "name": "Panini",
+        "artist": "Lil Nas X",
+        "audio": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview115/v4/f9/9f/51/f99f512d-1afb-810e-715b-ef8c3878aadf/mzaf_3749017260266760309.plus.aac.p.m4a",
+        "image": "https://is1-ssl.mzstatic.com/image/thumb/Music124/v4/07/d4/c3/07d4c33e-b793-d78f-bb1b-52f1e224da88/886447788264.jpg/100x100bb.jpg"
+      }
+    ]
   },
   {
     "name": "Olivier le gros beau gosse",
-    "userId": 6,
     "songs": [
       {
         "name": "U Can't Touch This",
         "artist": "MC Hammer",
         "audio": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/7e/3e/9e/7e3e9edb-74da-06d8-0bda-2b7c8f757b67/mzaf_7650390354415140006.plus.aac.p.m4a",
         "image": "https://is1-ssl.mzstatic.com/image/thumb/Music122/v4/0c/a5/7c/0ca57c94-601d-f973-eb79-3941573aac7c/13UABIM74018.rgb.jpg/100x100bb.jpg"
+      },
+      {
+        "name": "Hip-Hop (feat. Jay Jones)",
+        "artist": "Lil Wayne & BigXthaPlug",
+        "audio": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/83/1b/2c/831b2c19-c251-0c8a-dd85-37f7e5c18303/mzaf_2012424396012241837.plus.aac.p.m4a",
+        "image": "https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/10/79/e6/1079e660-807d-d7ec-3319-5058b052614c/25UMGIM80414.rgb.jpg/100x100bb.jpg"
+      },
+      {
+        "name": "Cupid",
+        "artist": "112",
+        "audio": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview112/v4/61/3a/61/613a61f8-61dd-0e65-90d6-e9bd962a5e10/mzaf_16223317656394124956.plus.aac.p.m4a",
+        "image": "https://is1-ssl.mzstatic.com/image/thumb/Music125/v4/2b/3b/8d/2b3b8d43-1ea1-d85b-0bbd-fb6499b37b08/mzi.puxmnlmp.jpg/100x100bb.jpg"
+      },
+      {
+        "name": "Die For You",
+        "artist": "The Weeknd",
+        "audio": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/5e/5c/f6/5e5cf682-062f-6d93-4585-8961d45a2513/mzaf_693841552796929970.plus.aac.p.m4a",
+        "image": "https://is1-ssl.mzstatic.com/image/thumb/Music115/v4/e2/61/f8/e261f8c1-73db-9a7a-c89e-1068f19970e0/16UMGIM67863.rgb.jpg/100x100bb.jpg"
+      },
+      {
+        "name": "Save Your Tears",
+        "artist": "The Weeknd",
+        "audio": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/09/0d/dc/090ddcdb-d1f2-7dea-4c85-6b9c6f98e4e5/mzaf_10081960992656977424.plus.aac.p.m4a",
+        "image": "https://is1-ssl.mzstatic.com/image/thumb/Music125/v4/2b/b9/fe/2bb9fef5-d7f3-8345-25a9-db0e79fde4e4/20UMGIM11048.rgb.jpg/100x100bb.jpg"
+      },
+      {
+        "name": "Panini",
+        "artist": "Lil Nas X",
+        "audio": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview115/v4/f9/9f/51/f99f512d-1afb-810e-715b-ef8c3878aadf/mzaf_3749017260266760309.plus.aac.p.m4a",
+        "image": "https://is1-ssl.mzstatic.com/image/thumb/Music124/v4/07/d4/c3/07d4c33e-b793-d78f-bb1b-52f1e224da88/886447788264.jpg/100x100bb.jpg"
       }
     ],
     "description": "",
+    "genre": ""
+  },
+  {
+    "name": "ma grosse bite",
+    "songs": [],
+    "description": "c'est ma grosse bite",
     "genre": ""
   }
 ]
