@@ -1309,6 +1309,34 @@ function initPage() {
     }
   });
 }
+/* update playlist info */
+function updatePlaylist(e, encodedOldName) {
+  e.preventDefault();
+
+  const form = e.target;
+  const oldName = decodeURIComponent(encodedOldName);
+
+  const data = {
+    newName: form.newName.value,
+    description: form.description.value,
+    genre: form.genre.value
+  };
+
+  fetch(`/api/playlists/${encodeURIComponent(oldName)}/update`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data)
+  }).then(r => {
+    if (r.ok) {
+      showToast("Playlist updated");
+      location.reload();
+    } else {
+      showToast("Could not update playlist");
+    }
+  });
+}
+
+window.updatePlaylist = updatePlaylist;
 
 /* make functions available in html */
 window.playSong              = playSong;
